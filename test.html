@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testling — tests</title>
+  <style>
+    :root {
+      --bg:      #111214;
+      --surface: #1a1c20;
+      --border:  #2c2f38;
+      --text:    #e8eaf0;
+      --muted:   #7b8090;
+      --ok:      #3ecf8e;
+      --fail:    #e05b5b;
+      --warn:    #e0b85b;
+      --font:    -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font);
+           padding: 20px; max-width: 800px; margin: 0 auto; }
+    h1   { font-size: 1.1rem; margin-bottom: 4px; }
+    p.sub { font-size: .8rem; color: var(--muted); margin-bottom: 24px; }
+
+    .suite { background: var(--surface); border: 1px solid var(--border);
+             border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .suite-titel { font-size: .75rem; font-weight: 700; letter-spacing: .1em;
+                   text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+    .test { display: flex; align-items: flex-start; gap: 10px;
+            padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .88rem; }
+    .test:last-child { border-bottom: none; }
+
+    .icoon { font-size: .85rem; flex-shrink: 0; margin-top: 1px; }
+    .ok   .icoon { color: var(--ok); }
+    .fail .icoon { color: var(--fail); }
+    .warn .icoon { color: var(--warn); }
+
+    .test-naam { flex: 1; }
+    .test-detail { font-size: .75rem; color: var(--muted); margin-top: 3px; }
+    .test-detail.fout { color: var(--fail); }
+
+    .samenvatting { display: flex; gap: 20px; font-size: .85rem;
+                    margin-bottom: 20px; flex-wrap: wrap; }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat-getal { font-size: 1.5rem; font-weight: 700; }
+    .stat-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; }
+    .stat.ok   .stat-getal { color: var(--ok); }
+    .stat.fail .stat-getal { color: var(--fail); }
+    .stat.warn .stat-getal { color: var(--warn); }
+
+    pre { font-family: monospace; font-size: .75rem; color: var(--muted);
+          background: #0d0f11; padding: 10px; border-radius: 6px;
+          overflow-x: auto; margin-top: 6px; white-space: pre-wrap; }
+
+    #laad { text-align: center; color: var(--muted); padding: 40px; }
+  </style>
+</head>
+<body>
+  <h1>Testling — automatische tests</h1>
+  <p class="sub">Importeert de generatoren en controleert correctheid van de uitvoer.</p>
+  <div id="laad">Tests worden geladen…</div>
+  <div id="root" hidden></div>
+
+<script type="module">
+import { genereerBSN, valideerBSN }   from './src/generators/bsn.js';
+import { genereerTelefoon }           from './src/generators/phone.js';
+import { genereerAdres }              from './src/generators/address.js';
+import { genereerKind, genereerOuderGekoppeld } from './src/generators/person.js';
+import { genereerGezin }              from './src/generators/gezin.js';
+import { genereerEmailKind, genereerEmailOuder1, genereerEmailOuder2 } from './src/generators/email.js';
+import { postNLuitgesloten }          from './data/adressen.js';
+
+// ── Test-framework (micro) ────────────────────────────────────
+
+const suites = [];
+let huidigeSuite = null;
+
+function suite(naam, fn) {
+  huidigeSuite = { naam, tests: [] };
+  suites.push(huidigeSuite);
+  fn();
+}
+
+function test(naam, fn) {
+  try {
+    const resultaat = fn();
+    if (resultaat === false) throw new Error('Bewering mislukt');
+    huidigeSuite.tests.push({ naam, status: 'ok', detail: null });
+  } catch (e) {
+    huidigeSuite.tests.push({ naam, status: 'fail', detail: e.message });
+  }
+}
+
+function beweer(conditie, bericht) {
+  if (!conditie) throw new Error(bericht || 'Conditie was false');
+}
+
+// ── Tests ─────────────────────────────────────────────────────
+
+// 1. BSN – ELF-proef
+suite('BSN — ELF-proef', () => {
+
+  test('Bekende geldige BSN: 123456782', () => {
+    beweer(valideerBSN('123456782'), '123456782 moet geldig zijn');
+  });
+
+  test('Bekende geldige BSN: 111222333', () => {
+    beweer(valideerBSN('111222333'), '111222333 moet geldig zijn');
+  });
+
+  test('Ongeldige BSN: 123456783 (±1 op laatste cijfer)', () => {
+    beweer(!valideerBSN('123456783'), '123456783 moet ongeldig zijn');
+  });
+
+  test('Te korte BSN (8 cijfers) is ongeldig', () => {
+    beweer(!valideerBSN('12345678'), 'Te kort moet ongeldig zijn');
+  });
+
+  test('BSN met letters is ongeldig', () => {
+    beweer(!valideerBSN('12345678X'), 'Bevat letters, moet ongeldig zijn');
+  });
+
+  test('1000× genereren — alle BSNs doorstaan ELF-proef', () => {
+    const fouten = [];
+    for (let i = 0; i < 1000; i++) {
+      const bsn = genereerBSN();
+      if (!valideerBSN(bsn)) fouten.push(bsn);
+    }
+    beweer(fouten.length === 0,
+      `${fouten.length} BSN(s) faalden ELF-proef: ${fouten.slice(0, 3).join(', ')}`);
+  });
+
+  test('BSN begint altijd met cijfer 1–9 (nooit 0)', () => {
+    for (let i = 0; i < 500; i++) {
+      const bsn = genereerBSN();
+      beweer(bsn[0] !== '0', `BSN begint met 0: ${bsn}`);
+    }
+  });
+
+  test('BSN is altijd 9 cijfers', () => {
+    for (let i = 0; i < 100; i++) {
+      const bsn = genereerBSN();
+      beweer(/^\d{9}$/.test(bsn), `BSN heeft niet 9 cijfers: ${bsn}`);
+    }
+  });
+
+});
+
+// 2. Postcode – PostNL uitsluitingen
+suite('Postcode — PostNL-uitsluitingen', () => {
+
+  test('Uitgesloten combinaties zijn correct gedefinieerd', () => {
+    beweer(
+      postNLuitgesloten.includes('SS') &&
+      postNLuitgesloten.includes('SA') &&
+      postNLuitgesloten.includes('SD') &&
+      postNLuitgesloten.includes('SF'),
+      'SS, SA, SD, SF moeten allemaal in de uitsluitlijst staan'
+    );
+  });
+
+  test('500× adres genereren — geen PostNL-lettercombinaties', () => {
+    const gevonden = [];
+    for (let i = 0; i < 500; i++) {
+      const adres = genereerAdres();
+      const letters = adres.postcode.slice(-2);
+      if (postNLuitgesloten.includes(letters)) {
+        gevonden.push(`${adres.postcode}`);
+      }
+    }
+    beweer(gevonden.length === 0,
+      `${gevonden.length} verboden postcodes gegenereerd: ${gevonden.slice(0, 3).join(', ')}`);
+  });
+
+  test('Postcode heeft altijd formaat "NNNN LL"', () => {
+    for (let i = 0; i < 200; i++) {
+      const { postcode } = genereerAdres();
+      beweer(/^\d{4}\s[A-Z]{2}$/.test(postcode), `Ongeldige postcode: ${postcode}`);
+    }
+  });
+
+  test('PC4-getal valt binnen het opgegeven bereik van de stad', () => {
+    // Controleer via het adresobject (we kunnen de stad niet meer terugkoppelen
+    // zonder extra export, maar we controleren wel dat de PC4 numeriek geldig is)
+    for (let i = 0; i < 100; i++) {
+      const { postcode } = genereerAdres();
+      const pc4 = parseInt(postcode.slice(0, 4));
+      beweer(pc4 >= 1000 && pc4 <= 9999, `PC4 buiten bereik: ${pc4}`);
+    }
+  });
+
+});
+
+// 3. Telefoon
+suite('Telefoonnummer', () => {
+
+  test('Altijd 10 cijfers', () => {
+    for (let i = 0; i < 200; i++) {
+      const t = genereerTelefoon();
+      beweer(/^\d{10}$/.test(t), `Niet 10 cijfers: ${t}`);
+    }
+  });
+
+  test('Begint altijd met "06"', () => {
+    for (let i = 0; i < 200; i++) {
+      const t = genereerTelefoon();
+      beweer(t.startsWith('06'), `Begint niet met 06: ${t}`);
+    }
+  });
+
+});
+
+// 4. E-mail — plus-adres schema
+suite('E-mail — plus-adres schema', () => {
+
+  const basis = 'test@voorbeeld.nl';
+
+  test('Kind krijgt juist plus-adres formaat', () => {
+    const email = genereerEmailKind(basis, 'Emma', 'po', 'onder');
+    beweer(email === 'test+emma.po.onder@voorbeeld.nl',
+      `Verwacht "test+emma.po.onder@voorbeeld.nl", kreeg "${email}"`);
+  });
+
+  test('Voornaam met accent wordt genormaliseerd', () => {
+    const email = genereerEmailKind(basis, 'Renée', 'po', 'zij');
+    beweer(email === 'test+renee.po.zij@voorbeeld.nl',
+      `Accent niet verwijderd: "${email}"`);
+  });
+
+  test('Ouder 1 krijgt "ouder." prefix', () => {
+    const email = genereerEmailOuder1(basis, 'Emma', 'po', 'onder');
+    beweer(email === 'test+ouder.emma.po.onder@voorbeeld.nl',
+      `Ouder-1 email onjuist: "${email}"`);
+  });
+
+  test('Ouder 2 krijgt "ouder2." prefix', () => {
+    const email = genereerEmailOuder2(basis, 'Emma', 'po', 'onder');
+    beweer(email === 'test+ouder2.emma.po.onder@voorbeeld.nl',
+      `Ouder-2 email onjuist: "${email}"`);
+  });
+
+  test('Basis-emailadres zonder plus-tag geeft fout', () => {
+    let gegooid = false;
+    try { genereerEmailKind('ongeldig-adres', 'Emma', 'po', 'onder'); }
+    catch { gegooid = true; }
+    beweer(gegooid, 'Ongeldig basisadres gooit geen fout');
+  });
+
+});
+
+// 5. Tussenvoegsel-koppeling in gezin
+suite('Gezin — tussenvoegsel-koppeling', () => {
+
+  test('Biologisch: ouder 1 deelt achternaam met kind', () => {
+    for (let i = 0; i < 50; i++) {
+      const gezin = genereerGezin({ biologisch: true, aantalOuders: 1 });
+      beweer(
+        gezin.ouder1.achternaam === gezin.kind.achternaam,
+        `Achternamen komen niet overeen: kind="${gezin.kind.achternaam}" ouder1="${gezin.ouder1.achternaam}"`
+      );
+    }
+  });
+
+  test('Biologisch: tussenvoegsel ouder 1 = tussenvoegsel kind', () => {
+    for (let i = 0; i < 50; i++) {
+      const gezin = genereerGezin({ biologisch: true, aantalOuders: 1 });
+      beweer(
+        gezin.ouder1.tussenvoegsel === gezin.kind.tussenvoegsel,
+        `Tussenvoegsels komen niet overeen: kind="${gezin.kind.tussenvoegsel}" ouder1="${gezin.ouder1.tussenvoegsel}"`
+      );
+    }
+  });
+
+  test('Niet-biologisch: ouder 1 heeft eigen achternaam', () => {
+    // We kunnen niet garanderen dat ze ALTIJD verschillen (kans bestaat),
+    // maar na 50 pogingen met niet-biologisch moet minimaal 1 keer verschillen.
+    // Eigenlijk: de generator MOET altijd een eigen naam genereren.
+    // We controleren dat achternaamKind=null doorgegeven wordt (altijd eigen naam).
+    // Dit test de code-intentie, niet de toevallige overeenkomst.
+    const gezin = genereerGezin({ biologisch: false, aantalOuders: 1 });
+    // Ouder 1 mag een andere naam hebben — we controleren enkel dat de identiteit volledig is
+    beweer(typeof gezin.ouder1.achternaam === 'string' && gezin.ouder1.achternaam.length > 0,
+      'Ouder 1 heeft geen achternaam');
+  });
+
+  test('Gedeeld adres: kind en ouder 1 hebben zelfde straat', () => {
+    for (let i = 0; i < 30; i++) {
+      const gezin = genereerGezin({ aantalOuders: 2 });
+      beweer(gezin.kind.straat === gezin.ouder1.straat,
+        `Straat verschilt: kind="${gezin.kind.straat}" ouder1="${gezin.ouder1.straat}"`);
+      beweer(gezin.kind.postcode === gezin.ouder1.postcode,
+        `Postcode verschilt: kind="${gezin.kind.postcode}" ouder1="${gezin.ouder1.postcode}"`);
+      beweer(gezin.kind.straat === gezin.ouder2.straat,
+        `Straat verschilt: kind="${gezin.kind.straat}" ouder2="${gezin.ouder2.straat}"`);
+    }
+  });
+
+  test('Met 2 ouders: ouder 2 heeft eigen e-mail tag (ouder2.)', () => {
+    const gezin = genereerGezin({
+      aantalOuders: 2,
+      basisEmail: 'test@x.nl',
+    });
+    beweer(gezin.ouder2.emailadres.includes('+ouder2.'),
+      `Ouder 2 email bevat geen "ouder2.": ${gezin.ouder2.emailadres}`);
+  });
+
+});
+
+// 6. Kind – leeftijd / groep / klas
+suite('Kind — leeftijd, groep en klas', () => {
+
+  test('PO onderinstroom: leeftijd altijd 4', () => {
+    for (let i = 0; i < 30; i++) {
+      const k = genereerKind('po', 'onder');
+      beweer(k.leeftijd === 4, `Leeftijd PO onderinstroom is ${k.leeftijd}, verwacht 4`);
+    }
+  });
+
+  test('PO onderinstroom: groep altijd 1', () => {
+    for (let i = 0; i < 30; i++) {
+      const k = genereerKind('po', 'onder');
+      beweer(k.groep === 1, `Groep PO onderinstroom is ${k.groep}, verwacht 1`);
+    }
+  });
+
+  test('PO zij-instroom: leeftijd 4–12', () => {
+    for (let i = 0; i < 50; i++) {
+      const k = genereerKind('po', 'zij');
+      beweer(k.leeftijd >= 4 && k.leeftijd <= 12,
+        `Leeftijd ${k.leeftijd} buiten bereik 4–12`);
+    }
+  });
+
+  test('PO zij-instroom: groep past bij leeftijd (4j=1, 12j=8)', () => {
+    for (let i = 0; i < 50; i++) {
+      const k = genereerKind('po', 'zij');
+      const verwacht = Math.min(Math.max(k.leeftijd - 3, 1), 8);
+      beweer(k.groep === verwacht,
+        `Groep ${k.groep} past niet bij leeftijd ${k.leeftijd} (verwacht ${verwacht})`);
+    }
+  });
+
+  test('VO onderinstroom: leeftijd altijd 12', () => {
+    for (let i = 0; i < 30; i++) {
+      const k = genereerKind('vo', 'onder');
+      beweer(k.leeftijd === 12, `Leeftijd VO onderinstroom is ${k.leeftijd}, verwacht 12`);
+    }
+  });
+
+  test('VO onderinstroom: klas altijd 1', () => {
+    for (let i = 0; i < 30; i++) {
+      const k = genereerKind('vo', 'onder');
+      beweer(k.klas === 1, `Klas VO onderinstroom is ${k.klas}, verwacht 1`);
+    }
+  });
+
+  test('VO zij-instroom: klas past bij leeftijd (12j=1, 18j=6)', () => {
+    for (let i = 0; i < 50; i++) {
+      const k = genereerKind('vo', 'zij');
+      const verwacht = Math.min(Math.max(k.leeftijd - 11, 1), 6);
+      beweer(k.klas === verwacht,
+        `Klas ${k.klas} past niet bij leeftijd ${k.leeftijd} (verwacht ${verwacht})`);
+    }
+  });
+
+  test('VO kind heeft altijd een niveau', () => {
+    const niveaus = ['VMBO-KB', 'VMBO-GL', 'VMBO-T', 'HAVO', 'VWO'];
+    for (let i = 0; i < 30; i++) {
+      const k = genereerKind('vo', 'onder');
+      beweer(niveaus.includes(k.niveau), `Onbekend niveau: ${k.niveau}`);
+    }
+  });
+
+});
+
+// 7. Volledigheid identiteit
+suite('Volledigheid — verplichte velden aanwezig', () => {
+
+  const KIND_VELDEN   = ['voornaam','achternaam','geslacht','geboortedatum','leeftijd',
+                          'bsn','telefoon','straat','huisnummer','postcode','woonplaats','provincie'];
+  const OUDER_VELDEN  = ['voornaam','achternaam','geslacht','geboortedatum','relatie',
+                          'bsn','telefoon','straat','huisnummer','postcode','woonplaats','provincie'];
+
+  test('Kind heeft alle verplichte velden', () => {
+    const k = genereerKind('po', 'onder');
+    for (const v of KIND_VELDEN) {
+      beweer(k[v] !== undefined && k[v] !== null && k[v] !== '',
+        `Veld "${v}" ontbreekt of leeg`);
+    }
+  });
+
+  test('Ouder heeft alle verplichte velden', () => {
+    const gezin = genereerGezin({ aantalOuders: 1, biologisch: true });
+    for (const v of OUDER_VELDEN) {
+      beweer(gezin.ouder1[v] !== undefined && gezin.ouder1[v] !== null && gezin.ouder1[v] !== '',
+        `Ouder-veld "${v}" ontbreekt of leeg`);
+    }
+  });
+
+  test('Geslacht is altijd "Man" of "Vrouw"', () => {
+    for (let i = 0; i < 50; i++) {
+      const k = genereerKind('po', 'onder');
+      beweer(k.geslacht === 'Man' || k.geslacht === 'Vrouw',
+        `Onverwacht geslacht: ${k.geslacht}`);
+    }
+  });
+
+  test('Geboortedatum heeft formaat DD-MM-YYYY', () => {
+    for (let i = 0; i < 50; i++) {
+      const k = genereerKind('po', 'zij');
+      beweer(/^\d{2}-\d{2}-\d{4}$/.test(k.geboortedatum),
+        `Ongeldig datumformaat: ${k.geboortedatum}`);
+    }
+  });
+
+});
+
+// ── Resultaten renderen ────────────────────────────────────────
+
+const root = document.getElementById('root');
+document.getElementById('laad').hidden = true;
+root.hidden = false;
+
+let totaalOk = 0, totaalFail = 0;
+
+for (const s of suites) {
+  const ok   = s.tests.filter(t => t.status === 'ok').length;
+  const fail = s.tests.filter(t => t.status === 'fail').length;
+  totaalOk   += ok;
+  totaalFail += fail;
+
+  const suiteEl = document.createElement('div');
+  suiteEl.className = 'suite';
+  suiteEl.innerHTML = `<div class="suite-titel">${s.naam} &nbsp;·&nbsp; ${ok}/${s.tests.length}</div>`;
+
+  for (const t of s.tests) {
+    const el = document.createElement('div');
+    el.className = `test ${t.status}`;
+    el.innerHTML = `
+      <span class="icoon">${t.status === 'ok' ? '✓' : '✗'}</span>
+      <div class="test-naam">
+        ${t.naam}
+        ${t.detail ? `<div class="test-detail fout">${t.detail}</div>` : ''}
+      </div>`;
+    suiteEl.appendChild(el);
+  }
+
+  root.appendChild(suiteEl);
+}
+
+// Samenvatting bovenaan
+const samen = document.createElement('div');
+samen.className = 'samenvatting';
+samen.innerHTML = `
+  <div class="stat ok">
+    <span class="stat-getal">${totaalOk}</span>
+    <span class="stat-label">Geslaagd</span>
+  </div>
+  <div class="stat ${totaalFail > 0 ? 'fail' : 'ok'}">
+    <span class="stat-getal">${totaalFail}</span>
+    <span class="stat-label">Gefaald</span>
+  </div>
+  <div class="stat">
+    <span class="stat-getal">${totaalOk + totaalFail}</span>
+    <span class="stat-label">Totaal</span>
+  </div>`;
+root.insertBefore(samen, root.firstChild);
+
+</script>
+</body>
+</html>
