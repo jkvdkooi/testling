@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Testling — Synthetische Nederlandse testidentiteiten voor onderwijs- en EdTech-toepassingen. Uitsluitend bedoeld voor testdoeleinden.">
+  <meta name="theme-color" content="#111214">
+  <meta name="color-scheme" content="dark">
+
+  <!-- PWA / iOS -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Testling">
+
+  <title>Testling — Bestaat niet. Werkt perfect.</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Thema instellen vóór eerste render — voorkomt flash
+    document.documentElement.dataset.thema =
+      localStorage.getItem('testling_thema') ||
+      ((new Date().getHours() >= 19 || new Date().getHours() < 7)
+        ? 'donker'
+        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht'));
+  </script>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Koptekst -->
+  <header class="app-header">
+    <div>
+      <h1 class="app-titel">Testling <span class="app-tagline">— Bestaat niet. Werkt perfect.</span></h1>
+      <p class="app-subtitel">Synthetische testidentiteiten voor onderwijs- en EdTech-toepassingen</p>
+    </div>
+    <label class="thema-toggle" aria-label="Night mode">
+      <input type="checkbox" id="btnThema" class="thema-toggle__input">
+      <span class="thema-toggle__label">Night mode</span>
+      <span class="thema-toggle__track" aria-hidden="true">
+        <span class="thema-toggle__knop"></span>
+      </span>
+    </label>
+  </header>
+
+  <main>
+
+  <!-- E-mail configuratie -->
+  <div class="email-config">
+    <label for="basisEmail">Ontvangst e-mailadres</label>
+    <input
+      type="email"
+      id="basisEmail"
+      placeholder="jouw@emailadres.nl"
+      autocomplete="email"
+      inputmode="email"
+      spellcheck="false"
+    >
+    <p class="email-hint">
+      Plus-tags worden aan dit adres toegevoegd — alle mail komt hier binnen
+    </p>
+  </div>
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist" aria-label="Identiteitstype">
+    <button class="tab tab--actief" role="tab" data-tab="kind"  aria-selected="true">Kind</button>
+    <button class="tab"             role="tab" data-tab="ouder" aria-selected="false">Ouder / verzorger</button>
+    <button class="tab"             role="tab" data-tab="gezin" aria-selected="false">Volledig gezin</button>
+  </nav>
+
+  <!-- Opties -->
+  <div class="opties-kaart" role="group" aria-label="Opties">
+
+    <!-- Schooltype -->
+    <div class="optie-groep optie-groep--school" id="grpSchooltype">
+      <span class="optie-label">Schooltype</span>
+      <div class="toggle-groep" role="group" aria-label="Schooltype">
+        <button class="toggle toggle--actief" data-groep="schooltype" data-waarde="po" aria-pressed="true">PO</button>
+        <button class="toggle"                data-groep="schooltype" data-waarde="vo" aria-pressed="false">VO</button>
+      </div>
+    </div>
+
+    <!-- Instroom -->
+    <div class="optie-groep optie-groep--school" id="grpInstroom">
+      <span class="optie-label">Instroom</span>
+      <div class="toggle-groep" role="group" aria-label="Instroomtype">
+        <button class="toggle toggle--actief" data-groep="instroom" data-waarde="onder" aria-pressed="true">Onderinstroom</button>
+        <button class="toggle"                data-groep="instroom" data-waarde="zij"   aria-pressed="false">Zij-instroom</button>
+      </div>
+    </div>
+
+    <!-- Aantal ouders (alleen gezin) -->
+    <div class="optie-groep optie-groep--gezin" id="grpOuders" hidden>
+      <span class="optie-label">Aantal ouders</span>
+      <div class="toggle-groep" role="group" aria-label="Aantal ouders">
+        <button class="toggle"                data-groep="ouders" data-waarde="1" aria-pressed="false">1 ouder</button>
+        <button class="toggle toggle--actief" data-groep="ouders" data-waarde="2" aria-pressed="true">2 ouders</button>
+      </div>
+    </div>
+
+    <!-- Biologische koppeling (alleen gezin) -->
+    <div class="optie-groep optie-groep--gezin" id="grpBiologisch" hidden>
+      <span class="optie-label">Biologische koppeling</span>
+      <div class="toggle-groep" role="group" aria-label="Biologische koppeling">
+        <button class="toggle toggle--actief" data-groep="biologisch" data-waarde="ja"  aria-pressed="true">Biologisch</button>
+        <button class="toggle"                data-groep="biologisch" data-waarde="nee" aria-pressed="false">Niet-biologisch</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Actie-knoppen boven output -->
+  <div class="acties">
+    <button id="btnNieuw" class="btn btn--primair">Nieuwe identiteit</button>
+    <button id="btnJSON"  class="btn btn--secundair">JSON</button>
+  </div>
+
+  <!-- Toetsenbord-hint (verborgen op touch-apparaten via CSS niet nodig; gewoon tonen) -->
+  <p class="keyboard-hint" aria-hidden="true">
+    <kbd>N</kbd> nieuw &nbsp;·&nbsp; <kbd>J</kbd> JSON &nbsp;·&nbsp; <kbd>Esc</kbd> sluiten
+  </p>
+
+  <!-- Output -->
+  <section id="output" aria-live="polite" aria-label="Gegenereerde identiteit">
+    <!-- Kaarten worden hier door main.js ingevuld -->
+  </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <a
+      href="https://github.com/jkvdkooi/testling"
+      class="footer-link"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <svg class="footer-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+          0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+          -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+          .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+          -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+          .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+          .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+          0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      jkvdkooi/testling
+    </a>
+  </footer>
+
+</div><!-- /wrapper -->
+
+<!-- Productiewaarschuwing -->
+<div class="productie-waarschuwing" role="note">
+  <strong>⚠ Uitsluitend voor testdoeleinden</strong> — Alle gegenereerde identiteiten zijn volledig fictief. Gebruik deze gegevens nooit in productieomgevingen of als echte persoonsgegevens.
+</div>
+
+<!-- JSON-modal -->
+<div
+  id="jsonModal"
+  class="modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="jsonModalTitel"
+  aria-hidden="true"
+  hidden
+>
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="jsonModalTitel">JSON</h2>
+      <button id="jsonSluit" class="modal-sluit" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal-body">
+      <pre id="jsonTekst" class="modal-json"></pre>
+    </div>
+    <div class="modal-footer">
+      <button id="jsonKopieer" class="btn btn--primair">Kopieer JSON</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
