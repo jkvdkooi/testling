@@ -1,9 +1,8 @@
 # Testling
 
-**Dutch test identity generator for EdTech SaaS applications.**
+**Synthetic Dutch test identity generator for education and EdTech applications — for testing purposes only.**
 
-Generated identities are synthetic and intended for testing purposes only.
-Do not use in production systems or misrepresent as real personal data.
+> ⚠️ **For testing purposes only.** All generated identities are entirely fictional. Never use this data in production systems or represent it as real personal data.
 
 > *Documentation is in Dutch. The project tagline is in English for discoverability.*
 
@@ -11,7 +10,7 @@ Do not use in production systems or misrepresent as real personal data.
 
 ## Wat doet het?
 
-Testling genereert realistische maar volledig fictieve testpersonen voor PO- en VO-aanmeldingen, specifiek voor gebruik bij het testen van [Leerlinq](https://leerlinq.nu). Alle gegevens zijn synthetisch — geen echte personen.
+Testling genereert realistische maar volledig fictieve testpersonen voor PO- en VO-aanmeldingen. Ontwikkeld vanuit de context van [Leerlinq](https://leerlinq.nu), maar bruikbaar voor elke onderwijs- of EdTech-toepassing waarbij je realistische testdata nodig hebt. Alle gegevens zijn synthetisch — geen echte personen.
 
 ---
 
