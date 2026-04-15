@@ -124,6 +124,8 @@ export function renderOuder(ouder, label = 'Ouder / verzorger') {
 
   const bsnContact = sectie('BSN & CONTACT',
     veld('BSN (ELF-proef ✓)', ouder.bsn) +
+    veld('IBAN (ELF-proef ✓)', ouder.iban) +
+    veld('Bank', ouder.bankNaam) +
     veld('Telefoon (10 cijfers)', ouder.telefoon) +
     (ouder.emailadres ? veld('E-mailadres', ouder.emailadres, true) : '')
   );

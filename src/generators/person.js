@@ -6,6 +6,7 @@
 import { voornamenMannelijk, voornamenVrouwelijk, achternamen } from '../../data/namen.js';
 import { randomItem, randomInt } from '../utils.js';
 import { genereerBSN }     from './bsn.js';
+import { genereerIBAN }    from './iban.js';
 import { genereerTelefoon } from './phone.js';
 import { genereerAdres }    from './address.js';
 import {
@@ -147,12 +148,16 @@ export function genereerOuderLos(basisEmail = '') {
   const naam     = genereerNaam(geslacht);
   const adres    = genereerAdres();
 
+  const { iban, bankNaam } = genereerIBAN();
+
   return {
     ...naam,
     geslacht:      geslacht === 'm' ? 'Man' : 'Vrouw',
     geboortedatum: genereerGeboortedatumVolwassene(),
     relatie:       randomItem(RELATIES),
     bsn:           genereerBSN(),
+    iban,
+    bankNaam,
     telefoon:      genereerTelefoon(),
     emailadres:    basisEmail ? genereerEmailOuderLos(basisEmail, naam.voornaam) : '',
     ...adres,
@@ -195,7 +200,8 @@ export function genereerOuderGekoppeld({
     ? `${naam.voornaam} ${tussenvoegsel} ${achternaam}`
     : `${naam.voornaam} ${achternaam}`;
 
-  const emailFn = ouderNummer === 1 ? genereerEmailOuder1 : genereerEmailOuder2;
+  const emailFn            = ouderNummer === 1 ? genereerEmailOuder1 : genereerEmailOuder2;
+  const { iban, bankNaam } = genereerIBAN();
 
   return {
     voornaam:      naam.voornaam,
@@ -206,6 +212,8 @@ export function genereerOuderGekoppeld({
     geboortedatum: genereerGeboortedatumVolwassene(),
     relatie:       randomItem(RELATIES),
     bsn:           genereerBSN(),
+    iban,
+    bankNaam,
     telefoon:      genereerTelefoon(),
     emailadres:    basisEmail ? emailFn(basisEmail, voornaamKind, schooltype, instroomtype) : '',
     ...adres,
