@@ -20,13 +20,14 @@ function initialen(voornaam, achternaam) {
 
 // ── Bouwblokken ───────────────────────────────────────────────
 
-function veld(label, waarde, volBreedte = false) {
+function veld(label, waarde, volBreedte = false, extraKlasse = '') {
   const w = (waarde !== null && waarde !== undefined && waarde !== '')
     ? String(waarde)
     : '—';
   const escaped = w.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const klassen = ['veld', volBreedte && 'veld--vol', extraKlasse].filter(Boolean).join(' ');
   return `
-    <div class="veld${volBreedte ? ' veld--vol' : ''}">
+    <div class="${klassen}">
       <span class="veld-label">${label}</span>
       <div class="veld-rij">
         <span class="veld-waarde">${w}</span>
@@ -35,11 +36,11 @@ function veld(label, waarde, volBreedte = false) {
     </div>`;
 }
 
-function sectie(titel, velden) {
+function sectie(titel, velden, gridKlasse = '') {
   return `
     <div class="kaart-sectie">
       <span class="sectie-titel">${titel}</span>
-      <div class="veld-grid">${velden}</div>
+      <div class="veld-grid${gridKlasse ? ' ' + gridKlasse : ''}">${velden}</div>
     </div>`;
 }
 
@@ -123,11 +124,12 @@ export function renderOuder(ouder, label = 'Ouder / verzorger') {
   );
 
   const bsnContact = sectie('BSN & CONTACT',
-    veld('BSN (ELF-proef ✓)', ouder.bsn) +
-    veld('IBAN (ELF-proef ✓)', ouder.iban) +
-    veld('Bank', ouder.bankNaam) +
+    veld('BSN (ELF-proef ✓)',    ouder.bsn) +
     veld('Telefoon (10 cijfers)', ouder.telefoon) +
-    (ouder.emailadres ? veld('E-mailadres', ouder.emailadres, true) : '')
+    veld('IBAN (ELF-proef ✓)',   ouder.iban, false, 'veld--mono') +
+    veld('Bank',                  ouder.bankNaam) +
+    (ouder.emailadres ? veld('E-mailadres', ouder.emailadres, true) : ''),
+    'veld-grid--2col'
   );
 
   const adres = sectie('ADRES',

@@ -47,7 +47,7 @@ export function genereerBSN() {
  * @returns {boolean}
  */
 export function valideerBSN(bsn) {
-  if (!/^\d{9}$/.test(bsn)) return false;
+  if (!/^[1-9]\d{8}$/.test(bsn)) return false; // BSN begint altijd met 1–9
   const gewichten = [9, 8, 7, 6, 5, 4, 3, 2, -1];
   const som = bsn
     .split('')
