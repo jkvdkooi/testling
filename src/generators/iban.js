@@ -124,6 +124,18 @@ export function genereerIBAN() {
 }
 
 /**
+ * Valideert of een 10-cijferig BBAN de ELF-proef (MOD-11) doorstaat.
+ * Gewichten: 10×d1 + 9×d2 + … + 1×d10 ≡ 0 (mod 11)
+ * @param {string} bban  10 cijfers
+ * @returns {boolean}
+ */
+export function valideerBBAN(bban) {
+  if (!/^\d{10}$/.test(bban)) return false;
+  const som = bban.split('').reduce((acc, c, i) => acc + (10 - i) * parseInt(c, 10), 0);
+  return som % 11 === 0;
+}
+
+/**
  * Valideert een (Nederlands) IBAN via MOD-97.
  * @param {string} iban  Met of zonder spaties
  * @returns {boolean}
