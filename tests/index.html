@@ -99,10 +99,24 @@
   <p id="laad-indicator">Tests worden uitgevoerd…</p>
   <div id="resultaten"></div>
 
+  <!-- Cache-busting: verhoog v= bij elke release (zelfde versie als index.html) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "/tests/runner.js":                    "/tests/runner.js?v=3",
+      "/tests/bsn.test.js":                  "/tests/bsn.test.js?v=3",
+      "/tests/iban.test.js":                 "/tests/iban.test.js?v=3",
+      "/src/generators/bsn.js":             "/src/generators/bsn.js?v=3",
+      "/src/generators/iban.js":            "/src/generators/iban.js?v=3",
+      "/src/utils.js":                      "/src/utils.js?v=3"
+    }
+  }
+  </script>
+
   <script type="module">
-    import { toonRapport } from './runner.js';
-    import './bsn.test.js';
-    import './iban.test.js';
+    import { toonRapport } from './runner.js?v=3';
+    import './bsn.test.js?v=3';
+    import './iban.test.js?v=3';
 
     document.getElementById('laad-indicator').style.display = 'none';
     document.getElementById('samenvatting').style.display = '';
