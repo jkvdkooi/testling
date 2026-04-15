@@ -14,7 +14,30 @@
   <meta name="apple-mobile-web-app-title" content="Testling">
 
   <title>Testling — Bestaat niet. Werkt perfect.</title>
-  <link rel="stylesheet" href="style.css">
+  <!-- Cache-busting: verhoog v= bij elke release -->
+  <link rel="stylesheet" href="style.css?v=3">
+
+  <!-- Import map: zorgt dat browser altijd de geversioneerde modules laadt -->
+  <script type="importmap">
+  {
+    "imports": {
+      "/src/main.js":                    "/src/main.js?v=3",
+      "/src/ui/render.js":               "/src/ui/render.js?v=3",
+      "/src/ui/copy.js":                 "/src/ui/copy.js?v=3",
+      "/src/generators/person.js":       "/src/generators/person.js?v=3",
+      "/src/generators/gezin.js":        "/src/generators/gezin.js?v=3",
+      "/src/generators/bsn.js":          "/src/generators/bsn.js?v=3",
+      "/src/generators/iban.js":         "/src/generators/iban.js?v=3",
+      "/src/generators/address.js":      "/src/generators/address.js?v=3",
+      "/src/generators/phone.js":        "/src/generators/phone.js?v=3",
+      "/src/generators/email.js":        "/src/generators/email.js?v=3",
+      "/src/utils.js":                   "/src/utils.js?v=3",
+      "/data/namen.js":                  "/data/namen.js?v=3",
+      "/data/adressen.js":               "/data/adressen.js?v=3"
+    }
+  }
+  </script>
+
   <script>
     // Thema instellen vóór eerste render — voorkomt flash
     document.documentElement.dataset.thema =
@@ -180,6 +203,6 @@
   </div>
 </div>
 
-<script type="module" src="src/main.js"></script>
+<script type="module" src="src/main.js?v=3"></script>
 </body>
 </html>
