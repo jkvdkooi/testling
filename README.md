@@ -24,7 +24,25 @@ De officiële BSN-formule:
 9×d1 + 8×d2 + 7×d3 + 6×d4 + 5×d5 + 4×d6 + 3×d7 + 2×d8 − 1×d9 ≡ 0 (mod 11)
 ```
 
-Het laatste cijfer telt **negatief** mee. Een veelgemaakte fout is alle gewichten positief te rekenen — dat levert BSN's op die de ELF-proef niet doorstaan.
+Het laatste cijfer telt **negatief** mee. Een veelgemaakte fout is alle gewichten positief te rekenen — dat levert BSN's op die de ELF-proef niet doorstaan. BSN's beginnen altijd met een cijfer 1–9.
+
+### IBAN — ELF-proef + MOD-97
+
+Elke ouder/verzorger krijgt een geldig Nederlands IBAN. De generator doorloopt twee validatielagen:
+
+**1. ELF-proef (MOD-11) op het rekeningnummer (BBAN)**
+
+```
+10×d1 + 9×d2 + 8×d3 + … + 1×d10 ≡ 0 (mod 11)
+```
+
+**2. MOD-97 op de IBAN-controlecijfers (ISO 7064)**
+
+```
+BBAN + "NL00" → letters vervangen door cijfers → mod 97 → 98 − rest = controlecijfers
+```
+
+Ondersteunde banken: ABN AMRO, ING, Rabobank, SNS Bank, ASN Bank, RegioBank, Triodos Bank, Bunq, Knab, Van Lanschot Kempen, Nationale Nederlanden Bank, Handelsbanken.
 
 ### Postcode — PC6
 
@@ -73,10 +91,10 @@ Tussenvoegsel wordt altijd exact meegenomen — `van den Berg` blijft `van den B
 Genereer een enkelvoudige leerlingidentiteit. Kies schooltype (PO/VO) en instroomtype.
 
 ### Ouder / verzorger
-Genereer een enkelvoudige ouderidentiteit, los van een kind.
+Genereer een enkelvoudige ouderidentiteit, los van een kind. Inclusief IBAN en bank.
 
 ### Volledig gezin
-Genereer een coherent gezin: kind + 1 of 2 ouders/voogden. Adres wordt gedeeld. Emailadressen zijn gekoppeld via het plus-adres schema.
+Genereer een coherent gezin: kind + 1 of 2 ouders/voogden. Adres wordt gedeeld. Emailadressen zijn gekoppeld via het plus-adres schema. Beide ouders krijgen elk een eigen IBAN.
 
 ---
 
@@ -91,26 +109,50 @@ De **JSON**-knop toont de volledige identiteit als JSON-object — handig voor P
 
 ## Veldoverzicht per identiteit
 
-| Veld | Toelichting |
-|---|---|
-| Voornaam | Willekeurig Nederlandse naam |
-| Tussenvoegsel | Bijv. `van den`, `de`, of leeg |
-| Achternaam | Gekoppeld aan tussenvoegsel |
-| Geslacht | Man / Vrouw |
-| Geboortedatum | DD-MM-YYYY, leeftijd passend bij instroom |
-| Leeftijd | Berekend uit geboortedatum |
-| BSN | 9 cijfers, ELF-proef gevalideerd |
-| Telefoon | 10 cijfers, begint met 06, geen koppelteken |
-| E-mailadres | Plus-adres gebaseerd op instelbaar basis-emailadres |
-| Straat | Echte Nederlandse straatnaam |
-| Huisnummer | Getal + optionele letter (bijv. 42B) |
-| Postcode | PC6: 4 cijfers + spatie + 2 letters |
-| Woonplaats | Gekoppeld aan postcode |
-| Provincie | Gekoppeld aan woonplaats |
-| Groep (PO) | Groep 1–8, passend bij leeftijd |
-| Klas (VO) | 1e–6e klas, passend bij leeftijd |
-| Niveau (VO) | VMBO-T, VMBO-KB, HAVO, VWO of VMBO-GL |
-| Relatie (ouder) | Ouder, Verzorger of Voogd |
+| Veld | Aanwezig bij | Toelichting |
+|---|---|---|
+| Voornaam | Kind, Ouder | Willekeurig Nederlandse naam |
+| Tussenvoegsel | Kind, Ouder | Bijv. `van den`, `de`, of leeg |
+| Achternaam | Kind, Ouder | Gekoppeld aan tussenvoegsel |
+| Geslacht | Kind, Ouder | Man / Vrouw |
+| Geboortedatum | Kind, Ouder | DD-MM-YYYY, leeftijd passend bij instroom |
+| Leeftijd | Kind | Berekend uit geboortedatum |
+| BSN | Kind, Ouder | 9 cijfers, ELF-proef gevalideerd, begint met 1–9 |
+| IBAN | Ouder | NL IBAN, ELF-proef (BBAN) + MOD-97 gevalideerd |
+| Bank | Ouder | Naam van de bank behorend bij het IBAN |
+| Telefoon | Kind, Ouder | 10 cijfers, begint met 06, geen koppelteken |
+| E-mailadres | Kind, Ouder | Plus-adres gebaseerd op instelbaar basis-emailadres |
+| Straat | Kind, Ouder | Echte Nederlandse straatnaam |
+| Huisnummer | Kind, Ouder | Getal + optionele letter (bijv. 42B) |
+| Postcode | Kind, Ouder | PC6: 4 cijfers + spatie + 2 letters |
+| Woonplaats | Kind, Ouder | Gekoppeld aan postcode |
+| Provincie | Kind, Ouder | Gekoppeld aan woonplaats |
+| Relatie | Ouder | Ouder, Verzorger of Voogd |
+| Groep | Kind (PO) | Groep 1–8, passend bij leeftijd |
+| Klas | Kind (VO) | 1e–6e klas, passend bij leeftijd |
+| Niveau | Kind (VO) | VMBO-T, VMBO-KB, HAVO, VWO of VMBO-GL |
+
+---
+
+## Unit tests
+
+Testling heeft een browser-native testsuite zonder npm of build-stap. Start de dev server en open:
+
+```
+http://localhost:3001/tests/
+```
+
+De suite dekt BSN (ELF-proef, entropie) en IBAN (ELF-proef op BBAN, MOD-97, kansverdeling banken) — 24 tests in totaal.
+
+---
+
+## Lokaal draaien
+
+```bash
+python3 dev.py
+```
+
+Opent op `http://localhost:3001`. De server stuurt `no-cache` headers mee zodat code-wijzigingen altijd direct zichtbaar zijn zonder hard refresh.
 
 ---
 
@@ -118,6 +160,7 @@ De **JSON**-knop toont de volledige identiteit als JSON-object — handig voor P
 
 - Adressen zijn **subjectief realistisch** — de combinatie van straatnaam, huisnummer en PC6-letters is niet gegarandeerd een bestaand adres in de BAG.
 - BSN's zijn **wiskundig geldig** maar nooit gekoppeld aan echte personen in de BRP.
+- IBAN's zijn **wiskundig geldig** (ELF-proef + MOD-97) maar nooit gekoppeld aan echte rekeningen.
 - Gegenereerde identiteiten zijn uitsluitend bedoeld voor **testdoeleinden** in een afgeschermde testomgeving.
 
 ---
