@@ -481,6 +481,21 @@ body {
   .veld--vol {
     grid-column: 1 / -1;
   }
+
+  /* 2-kolom variant: rij 1 = BSN + Telefoon, rij 2 = IBAN + Bank */
+  .veld-grid--2col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Monospace veld-waarde: voor IBAN, geen agressief afbreken */
+.veld--mono .veld-waarde {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: .88rem;
+  letter-spacing: .03em;
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: nowrap;
 }
 
 .veld {
@@ -509,8 +524,8 @@ body {
   color: var(--text);
   flex: 1;
   min-width: 0;
-  overflow-wrap: break-word;
-  word-break: break-all;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 /* Kopieer-knoppen */

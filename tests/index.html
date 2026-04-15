@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testling — Unit Tests</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header a {
+      color: #64748b;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    header a:hover { color: #94a3b8; }
+
+    #samenvatting {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      border: 1px solid transparent;
+    }
+
+    #samenvatting.ok   { background: #052e16; border-color: #16a34a; color: #4ade80; }
+    #samenvatting.fout { background: #2d0a0a; border-color: #dc2626; color: #f87171; }
+
+    #resultaten h3 {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin: 1.5rem 0 0.5rem;
+    }
+
+    #resultaten h3:first-child { margin-top: 0; }
+
+    .test-rij {
+      display: grid;
+      grid-template-columns: 1.5rem 1fr;
+      gap: 0.4rem;
+      align-items: baseline;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #1e2430;
+      font-size: 0.88rem;
+    }
+
+    .test-rij.ok   .icoon { color: #4ade80; }
+    .test-rij.fout .icoon { color: #f87171; }
+
+    .foutmelding {
+      grid-column: 2;
+      font-size: 0.78rem;
+      color: #f87171;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      background: #1a0a0a;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      margin-top: 0.25rem;
+    }
+
+    #laad-indicator {
+      color: #64748b;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Testling — Unit Tests</h1>
+    <a href="/">← terug naar app</a>
+  </header>
+
+  <div id="samenvatting" class="ok" style="display:none"></div>
+  <p id="laad-indicator">Tests worden uitgevoerd…</p>
+  <div id="resultaten"></div>
+
+  <!-- Cache-busting: verhoog v= bij elke release (zelfde versie als index.html) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "/tests/runner.js":                    "/tests/runner.js?v=3",
+      "/tests/bsn.test.js":                  "/tests/bsn.test.js?v=3",
+      "/tests/iban.test.js":                 "/tests/iban.test.js?v=3",
+      "/src/generators/bsn.js":             "/src/generators/bsn.js?v=3",
+      "/src/generators/iban.js":            "/src/generators/iban.js?v=3",
+      "/src/utils.js":                      "/src/utils.js?v=3"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import { toonRapport } from './runner.js?v=3';
+    import './bsn.test.js?v=3';
+    import './iban.test.js?v=3';
+
+    document.getElementById('laad-indicator').style.display = 'none';
+    document.getElementById('samenvatting').style.display = '';
+    toonRapport();
+  </script>
+</body>
+</html>
