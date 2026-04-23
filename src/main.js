@@ -160,7 +160,8 @@ document.addEventListener('keydown', e => {
 
 // ── Event listeners ───────────────────────────────────────────
 
-elEmail.addEventListener('input', e => slaEmailOp(e.target.value.trim()));
+elEmail.addEventListener('input',  e => slaEmailOp(e.target.value.trim()));
+elEmail.addEventListener('change', () => genereer());
 
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => activeerTab(btn.dataset.tab));
