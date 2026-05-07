@@ -76,6 +76,7 @@ export function renderKind(kind) {
     veld('Tussenvoegsel', kind.tussenvoegsel || '—') +
     veld('Geslacht',    kind.geslacht) +
     veld('Geboortedatum', kind.geboortedatum) +
+    veld('Geboorteplaats', kind.geboorteplaats || '—') +
     veld('Leeftijd',    kind.leeftijd ? `${kind.leeftijd} jaar` : '—')
   );
 
@@ -120,7 +121,8 @@ export function renderOuder(ouder, label = 'Ouder / verzorger') {
     veld('Achternaam',  ouder.achternaam) +
     veld('Tussenvoegsel', ouder.tussenvoegsel || '—') +
     veld('Geslacht',    ouder.geslacht) +
-    veld('Geboortedatum', ouder.geboortedatum)
+    veld('Geboortedatum', ouder.geboortedatum) +
+    veld('Geboorteplaats', ouder.geboorteplaats || '—')
   );
 
   const bsnContact = sectie('BSN & CONTACT',
