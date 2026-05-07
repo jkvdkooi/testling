@@ -9,6 +9,7 @@ import { genereerBSN }     from './bsn.js';
 import { genereerIBAN }    from './iban.js';
 import { genereerTelefoon } from './phone.js';
 import { genereerAdres }    from './address.js';
+import { steden }           from '../../data/adressen.js';
 import {
   genereerEmailKind,
   genereerEmailOuder1,
@@ -32,6 +33,16 @@ function genereerGeboortedatumVolwassene() {
 
 // Ouder-relaties
 const RELATIES = ['Ouder', 'Verzorger', 'Voogd'];
+
+/**
+ * Genereert een geboorteplaats: 70% kans op de woonplaats, anders een willekeurige stad.
+ * @param {string} woonplaats
+ * @returns {string}
+ */
+function genereerGeboorteplaats(woonplaats) {
+  if (Math.random() < 0.70) return woonplaats;
+  return randomItem(steden).stad;
+}
 
 // ── Hulpfuncties ──────────────────────────────────────────────
 
@@ -117,6 +128,7 @@ export function genereerKind(schooltype = 'po', instroomtype = 'onder', basisEma
     ...naam,
     geslacht:      geslacht === 'm' ? 'Man' : 'Vrouw',
     geboortedatum,
+    geboorteplaats: genereerGeboorteplaats(adres.woonplaats),
     leeftijd,
     bsn:           genereerBSN(),
     telefoon:      genereerTelefoon(),
@@ -154,6 +166,7 @@ export function genereerOuderLos(basisEmail = '') {
     ...naam,
     geslacht:      geslacht === 'm' ? 'Man' : 'Vrouw',
     geboortedatum: genereerGeboortedatumVolwassene(),
+    geboorteplaats: genereerGeboorteplaats(adres.woonplaats),
     relatie:       randomItem(RELATIES),
     bsn:           genereerBSN(),
     iban,
@@ -210,6 +223,7 @@ export function genereerOuderGekoppeld({
     volleNaam,
     geslacht:      geslacht === 'm' ? 'Man' : 'Vrouw',
     geboortedatum: genereerGeboortedatumVolwassene(),
+    geboorteplaats: genereerGeboorteplaats(adres.woonplaats),
     relatie:       randomItem(RELATIES),
     bsn:           genereerBSN(),
     iban,
