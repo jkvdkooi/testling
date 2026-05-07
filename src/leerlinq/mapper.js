@@ -47,6 +47,7 @@ export function mapKindNaarLeerlinq(kind) {
   return {
     _stap:                   'leerling',
     firstName:               kind.voornaam,
+    nickName:                kind.voornaam,
     prefix:                  kind.tussenvoegsel || '',
     lastName:                kind.achternaam,
     sex:                     kind.geslacht.toLowerCase(),
