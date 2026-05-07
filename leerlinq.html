@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Testling × Leerlinq — Automatisch invullen van het PO aanmeldportaal met synthetische testdata.">
+  <meta name="robots" content="noindex">
+  <title>Testling × Leerlinq — Autofill voor PO aanmeldportaal</title>
+  <link rel="stylesheet" href="style.css?v=3">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "/src/leerlinq/main.js":         "/src/leerlinq/main.js?v=1",
+      "/src/leerlinq/mapper.js":       "/src/leerlinq/mapper.js?v=1",
+      "/src/ui/render.js":             "/src/ui/render.js?v=3",
+      "/src/ui/copy.js":               "/src/ui/copy.js?v=3",
+      "/src/generators/person.js":     "/src/generators/person.js?v=3",
+      "/src/generators/gezin.js":      "/src/generators/gezin.js?v=3",
+      "/src/generators/bsn.js":        "/src/generators/bsn.js?v=3",
+      "/src/generators/iban.js":       "/src/generators/iban.js?v=3",
+      "/src/generators/address.js":    "/src/generators/address.js?v=3",
+      "/src/generators/phone.js":      "/src/generators/phone.js?v=3",
+      "/src/generators/email.js":      "/src/generators/email.js?v=3",
+      "/src/utils.js":                 "/src/utils.js?v=3",
+      "/data/namen.js":                "/data/namen.js?v=3",
+      "/data/adressen.js":             "/data/adressen.js?v=3"
+    }
+  }
+  </script>
+
+  <script>
+    document.documentElement.dataset.thema =
+      localStorage.getItem('testling_thema') ||
+      ((new Date().getHours() >= 19 || new Date().getHours() < 7)
+        ? 'donker'
+        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'donker' : 'licht'));
+  </script>
+
+  <style>
+    /* ── Leerlinq-pagina specifieke stijlen ── */
+
+    .llq-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      border-radius: 20px;
+      padding: 3px 10px;
+      margin-bottom: 8px;
+    }
+
+    .llq-terugknop {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .82rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 4px 0;
+      transition: color .15s;
+    }
+    .llq-terugknop:hover { color: var(--text); }
+    .llq-terugknop svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* Bookmarklet sectie */
+    .bookmarklet-sectie {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .bookmarklet-sectie h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .bookmarklet-sectie p {
+      font-size: .85rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .bookmarklet-stappen {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bookmarklet-stap {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .bookmarklet-stap-nr {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--accent) 20%, transparent);
+      color: var(--accent);
+      font-size: .78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .bookmarklet-stap-tekst {
+      font-size: .85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .bookmarklet-stap-tekst strong { color: var(--text); }
+
+    /* De draggable bookmarklet link */
+    .bookmarklet-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: color-mix(in srgb, var(--accent) 15%, var(--surface-2));
+      border: 2px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: grab;
+      transition: background .15s, border-color .15s;
+      user-select: none;
+    }
+    .bookmarklet-link:hover {
+      background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+      border-color: var(--accent);
+    }
+    .bookmarklet-link:active { cursor: grabbing; }
+
+    /* Code-block voor handmatig kopiëren */
+    .bookmarklet-code-wrap {
+      position: relative;
+      margin-top: 12px;
+    }
+
+    .bookmarklet-code {
+      display: block;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: .72rem;
+      color: var(--text-muted);
+      word-break: break-all;
+      white-space: pre-wrap;
+      max-height: 80px;
+      overflow: hidden;
+      cursor: text;
+    }
+
+    .bookmarklet-code-kopieer {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: .72rem;
+      padding: 3px 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color .15s;
+    }
+    .bookmarklet-code-kopieer:hover { color: var(--text); }
+
+    /* Stap-secties */
+    .llq-stap {
+      margin-bottom: 20px;
+    }
+
+    .llq-stap-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .llq-stap-titel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .llq-stap-nr {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: .82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .llq-stap-naam {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .llq-stap-sub {
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+
+    .btn--leerlinq {
+      background: color-mix(in srgb, #3ecf8e 85%, transparent);
+      color: #0a2e1e;
+      font-weight: 700;
+      border: none;
+    }
+    .btn--leerlinq:hover {
+      background: #3ecf8e;
+    }
+
+    [data-thema="licht"] .btn--leerlinq {
+      color: #0a2e1e;
+    }
+
+    .llq-hint {
+      font-size: .78rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .llq-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    @media (max-width: 480px) {
+      .llq-stap-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Koptekst -->
+  <header class="app-header">
+    <div>
+      <div class="llq-header-badge">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+            -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+            .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+            -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+            .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+            .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+            0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        Leerlinq integratie
+      </div>
+      <h1 class="app-titel">Testling <span class="app-tagline">× Leerlinq PO autofill</span></h1>
+      <p class="app-subtitel">Genereer testdata en plak ze met één klik in het PO aanmeldportaal</p>
+    </div>
+    <label class="thema-toggle" aria-label="Night mode">
+      <input type="checkbox" id="btnThema" class="thema-toggle__input">
+      <span class="thema-toggle__label">Night mode</span>
+      <span class="thema-toggle__track" aria-hidden="true">
+        <span class="thema-toggle__knop"></span>
+      </span>
+    </label>
+  </header>
+
+  <main>
+
+    <!-- Terug -->
+    <a href="index.html" class="llq-terugknop" aria-label="Terug naar Testling">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+      </svg>
+      Terug naar Testling
+    </a>
+
+    <!-- E-mail configuratie -->
+    <div class="email-config" style="margin-top:16px;">
+      <label for="basisEmail">Ontvangst e-mailadres</label>
+      <input
+        type="email"
+        id="basisEmail"
+        placeholder="jouw@emailadres.nl"
+        autocomplete="email"
+        inputmode="email"
+        spellcheck="false"
+      >
+      <p class="email-hint">Plus-tags worden aan dit adres toegevoegd — alle mail komt hier binnen</p>
+    </div>
+
+    <!-- Bookmarklet setup -->
+    <section class="bookmarklet-sectie" aria-labelledby="bookmarkletTitel">
+      <h2 id="bookmarkletTitel">📌 Eénmalige instelling — de bookmarklet</h2>
+      <p>
+        Sleep de knop hieronder naar je bladwijzerbalk. Daarna kun je op elke stap in het
+        Leerlinq portaal op die bladwijzer klikken en worden de gegevens automatisch ingevuld.
+      </p>
+
+      <div class="bookmarklet-stappen">
+
+        <div class="bookmarklet-stap">
+          <span class="bookmarklet-stap-nr">1</span>
+          <div class="bookmarklet-stap-tekst">
+            <strong>Sleep deze knop naar je bladwijzerbalk</strong><br>
+            (Weergave → Bladwijzerbalk tonen, of <kbd>Ctrl+Shift+B</kbd>)<br><br>
+            <a class="bookmarklet-link" href="javascript:(function(){if(!navigator.clipboard){alert('Clipboard niet beschikbaar (gebruik HTTPS)');return;}navigator.clipboard.readText().then(function(t){var d;try{d=JSON.parse(t);}catch(e){alert('Geen geldige JSON op klembord.\nKopieer eerst via Testling.');return;}if(!d._stap){alert('Geen Testling-data herkend op het klembord.');return;}var n=0,m=[];Object.keys(d).forEach(function(k){if(k[0]==='_')return;var el=document.getElementById(k);if(!el){m.push(k);return;}el.value=d[k];el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));n++;});var msg=n+' veld'+(n===1?'':'en')+' ingevuld \u2713';if(m.length)msg+='\n\nNiet gevonden ('+m.length+'): '+m.slice(0,5).join(', ')+(m.length>5?'\u2026':'');alert(msg);}).catch(function(){alert('Klembord-toegang geweigerd.\nKlik OK en geef toestemming in de browser-popup.');});})();" draggable="true">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+              </svg>
+              Testling → Leerlinq
+            </a>
+          </div>
+        </div>
+
+        <div class="bookmarklet-stap">
+          <span class="bookmarklet-stap-nr">2</span>
+          <div class="bookmarklet-stap-tekst">
+            <strong>Kopieer de testdata voor de juiste stap</strong> (zie hieronder)
+          </div>
+        </div>
+
+        <div class="bookmarklet-stap">
+          <span class="bookmarklet-stap-nr">3</span>
+          <div class="bookmarklet-stap-tekst">
+            <strong>Ga naar het Leerlinq portaal</strong>, open de stap (Leerling of Verzorger)
+            en klik op de bookmarklet in je bladwijzerbalk.
+            Chrome vraagt eenmalig toestemming voor het klembord — klik <em>Toestaan</em>.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Handmatig kopiëren van de bookmarklet code -->
+      <details style="margin-top:16px;">
+        <summary style="font-size:.82rem;color:var(--text-muted);cursor:pointer;">
+          Werkt slepen niet? Kopieer de code handmatig
+        </summary>
+        <div class="bookmarklet-code-wrap" style="margin-top:8px;">
+          <code id="bookmarkletCode" class="bookmarklet-code">javascript:(function(){if(!navigator.clipboard){alert('Clipboard niet beschikbaar (gebruik HTTPS)');return;}navigator.clipboard.readText().then(function(t){var d;try{d=JSON.parse(t);}catch(e){alert('Geen geldige JSON op klembord.\nKopieer eerst via Testling.');return;}if(!d._stap){alert('Geen Testling-data herkend op het klembord.');return;}var n=0,m=[];Object.keys(d).forEach(function(k){if(k[0]==='_')return;var el=document.getElementById(k);if(!el){m.push(k);return;}el.value=d[k];el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));n++;});var msg=n+' veld'+(n===1?'':'en')+' ingevuld \u2713';if(m.length)msg+='\n\nNiet gevonden ('+m.length+'): '+m.slice(0,5).join(', ')+(m.length>5?'\u2026':'');alert(msg);}).catch(function(){alert('Klembord-toegang geweigerd.\nKlik OK en geef toestemming in de browser-popup.');});})();</code>
+          <button class="bookmarklet-code-kopieer" id="btnKopieerCode">kopieer</button>
+        </div>
+        <p style="font-size:.75rem;color:var(--text-muted);margin-top:8px;">
+          Maak een nieuwe bladwijzer aan, plak dit als URL en sla op.
+        </p>
+      </details>
+    </section>
+
+    <!-- Actieknop -->
+    <div class="acties">
+      <button id="btnNieuw" class="btn btn--primair">
+        Nieuw gezin genereren
+      </button>
+      <span id="tellerGezin" style="font-size:.78rem;color:var(--text-muted);align-self:center;"></span>
+    </div>
+
+    <p class="keyboard-hint" aria-hidden="true"><kbd>N</kbd> nieuw gezin</p>
+
+    <hr class="llq-divider">
+
+    <!-- Stap 1: Leerling -->
+    <section class="llq-stap" aria-labelledby="stapLeerlingTitel">
+      <div class="llq-stap-header">
+        <div class="llq-stap-titel">
+          <span class="llq-stap-nr" aria-hidden="true">1</span>
+          <div>
+            <div id="stapLeerlingTitel" class="llq-stap-naam">Stap: Leerling</div>
+            <div class="llq-stap-sub">Kopieer → open de leerling-stap → klik bookmarklet</div>
+          </div>
+        </div>
+        <button id="btnKopieerLeerling" class="btn btn--leerlinq">
+          Kopieer leerling-data
+        </button>
+      </div>
+
+      <div id="uitvoerKind" aria-live="polite" aria-label="Kind-kaart">
+        <!-- Kaart wordt door main.js ingevuld -->
+      </div>
+    </section>
+
+    <hr class="llq-divider">
+
+    <!-- Stap 2: Verzorger -->
+    <section class="llq-stap" aria-labelledby="stapVerzorgerTitel">
+      <div class="llq-stap-header">
+        <div class="llq-stap-titel">
+          <span class="llq-stap-nr" aria-hidden="true">2</span>
+          <div>
+            <div id="stapVerzorgerTitel" class="llq-stap-naam">Stap: Verzorger</div>
+            <div class="llq-stap-sub">Bevat ouder 1 + ouder 2 + betalingsinformatie</div>
+          </div>
+        </div>
+        <button id="btnKopieerVerzorger" class="btn btn--leerlinq">
+          Kopieer verzorger-data
+        </button>
+      </div>
+
+      <div id="uitvoerOuder" aria-live="polite" aria-label="Ouder-kaarten">
+        <!-- Kaarten worden door main.js ingevuld -->
+      </div>
+
+      <p class="llq-hint">
+        Ouder 1 is standaard ingesteld als betaler (IBAN + rekeninghouder worden meegenomen).
+      </p>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <a href="https://github.com/jkvdkooi/testling" class="footer-link" target="_blank" rel="noopener noreferrer">
+      <svg class="footer-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+          0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+          -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+          .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+          -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+          .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+          .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+          0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      jkvdkooi/testling
+    </a>
+    <span style="color:var(--text-dim);font-size:.78rem;">· uitsluitend voor testdoeleinden</span>
+  </footer>
+
+</div><!-- /wrapper -->
+
+<div class="productie-waarschuwing" role="note">
+  <strong>⚠ Uitsluitend voor testdoeleinden</strong> — Alle gegenereerde identiteiten zijn volledig fictief.
+</div>
+
+<script>
+  // Bookmarklet-code kopieerknop (inline, vóór de module laadt)
+  document.getElementById('btnKopieerCode')?.addEventListener('click', function() {
+    const code = document.getElementById('bookmarkletCode').textContent;
+    const btn  = this;
+    navigator.clipboard?.writeText(code).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'gekopieerd ✓';
+      setTimeout(() => btn.textContent = orig, 1800);
+    });
+  });
+</script>
+
+<script type="module" src="src/leerlinq/main.js?v=1"></script>
+</body>
+</html>
