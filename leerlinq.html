@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Testling × Leerlinq — Automatisch invullen van het PO aanmeldportaal met synthetische testdata.">
+  <meta name="description" content="Testling × Leerlinq — Automatisch invullen van het PO en VO aanmeldportaal met synthetische testdata.">
   <meta name="robots" content="noindex">
-  <title>Testling × Leerlinq — Autofill voor PO aanmeldportaal</title>
+  <title>Testling × Leerlinq — Autofill voor PO &amp; VO aanmeldportaal</title>
   <link rel="stylesheet" href="style.css?v=3">
 
   <script type="importmap">
@@ -280,8 +280,8 @@
         </svg>
         Leerlinq integratie
       </div>
-      <h1 class="app-titel">Testling <span class="app-tagline">× Leerlinq PO autofill</span></h1>
-      <p class="app-subtitel">Genereer testdata en plak ze met één klik in het PO aanmeldportaal</p>
+      <h1 class="app-titel">Testling <span class="app-tagline">× Leerlinq autofill</span></h1>
+      <p class="app-subtitel">Genereer testdata en plak ze met één klik in het aanmeldportaal</p>
     </div>
     <label class="thema-toggle" aria-label="Night mode">
       <input type="checkbox" id="btnThema" class="thema-toggle__input">
@@ -373,6 +373,17 @@
         </p>
       </details>
     </section>
+
+    <!-- Schooltype -->
+    <div class="opties-kaart" role="group" aria-label="Opties" style="margin-bottom:16px;">
+      <div class="optie-groep">
+        <span class="optie-label">Schooltype</span>
+        <div class="toggle-groep" role="group" aria-label="Schooltype">
+          <button class="toggle toggle--actief" id="llqTogglePO" data-schooltype="po" aria-pressed="true">PO</button>
+          <button class="toggle"                id="llqToggleVO" data-schooltype="vo" aria-pressed="false">VO</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Actieknop -->
     <div class="acties">
