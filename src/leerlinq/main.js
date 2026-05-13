@@ -14,6 +14,7 @@ import { mapKindNaarLeerlinq, mapGezinNaarVerzorgers } from './mapper.js';
 const state = {
   gezin:      null,   // huidig gegenereerd gezin
   basisEmail: '',
+  schooltype: 'po',
 };
 
 // ── DOM ───────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ const elUitvoerOuder = document.getElementById('uitvoerOuder');
 const elBtnKopieerLeerling  = document.getElementById('btnKopieerLeerling');
 const elBtnKopieerVerzorger = document.getElementById('btnKopieerVerzorger');
 const elTeller      = document.getElementById('tellerGezin');
+const elSchooltypeToggles = document.querySelectorAll('[data-schooltype]');
 
 // ── Persistentie ──────────────────────────────────────────────
 
@@ -45,7 +47,7 @@ function slaEmailOp(waarde) {
 
 function genereer() {
   state.gezin = genereerGezin({
-    schooltype:   'po',
+    schooltype:   state.schooltype,
     instroomtype: 'onder',
     aantalOuders: 2,
     biologisch:   true,
@@ -95,6 +97,17 @@ elBtnKopieerVerzorger.addEventListener('click', () => {
 elBtnNieuw.addEventListener('click', genereer);
 elEmail.addEventListener('input',  e => slaEmailOp(e.target.value.trim()));
 elEmail.addEventListener('change', genereer);
+
+elSchooltypeToggles.forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.schooltype = btn.dataset.schooltype;
+    elSchooltypeToggles.forEach(b => {
+      b.classList.toggle('toggle--actief', b === btn);
+      b.setAttribute('aria-pressed', String(b === btn));
+    });
+    genereer();
+  });
+});
 
 document.addEventListener('keydown', e => {
   if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
