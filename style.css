@@ -929,3 +929,83 @@ kbd {
   background: color-mix(in srgb, #ef4444 10%, var(--surface));
   color: #ef4444;
 }
+
+/* ── Auto-kopieer toast ─────────────────────────────────────── */
+
+.auto-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 11px 18px;
+  font-size: .88rem;
+  color: var(--text);
+  box-shadow: 0 8px 28px rgba(0,0,0,.32);
+  z-index: 2000;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: toast-in .22s ease, toast-out .3s ease 2.8s forwards;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Snelkoppeling-sectie ───────────────────────────────────── */
+
+.snelkoppeling-sectie {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: var(--radius);
+}
+
+.snelkoppeling-sectie p {
+  font-size: .83rem;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.snelkoppeling-url {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.snelkoppeling-url code {
+  flex: 1;
+  font-size: .78rem;
+  color: var(--accent);
+  word-break: break-all;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.snelkoppeling-kopieer {
+  flex-shrink: 0;
+  font-size: .72rem;
+  padding: 3px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color .15s;
+}
+
+.snelkoppeling-kopieer:hover { color: var(--text); }
