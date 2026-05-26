@@ -11,29 +11,34 @@ import { kopieer }           from './ui/copy.js';
 // ── State ─────────────────────────────────────────────────────
 
 const state = {
-  tab:         'kind',   // 'kind' | 'ouder' | 'gezin'
-  schooltype:  'po',     // 'po' | 'vo'
-  instroom:    'onder',  // 'onder' | 'zij'
-  ouders:      2,        // 1 | 2
-  biologisch:  true,
-  basisEmail:  '',
-  huidigData:  null,     // laatst gegenereerde data (voor JSON-export)
+  tab:          'kind',  // 'kind' | 'ouder' | 'gezin'
+  schooltype:   'po',    // 'po' | 'vo'
+  instroom:     'onder', // 'onder' | 'zij'
+  ouders:       2,       // 1 | 2
+  biologisch:   true,
+  basisEmail:   '',
+  huidigData:   null,    // laatst gegenereerde data (voor JSON-export)
+  geschiedenis: [],      // [{ naam, tab, data }]
+  huidigIndex:  -1,
 };
 
 // ── DOM-referenties ───────────────────────────────────────────
 
-const elEmail      = document.getElementById('basisEmail');
-const elOutput     = document.getElementById('output');
-const elBtnNieuw   = document.getElementById('btnNieuw');
-const elBtnJSON    = document.getElementById('btnJSON');
-const elModal      = document.getElementById('jsonModal');
-const elModalTekst = document.getElementById('jsonTekst');
-const elModalSluit = document.getElementById('jsonSluit');
-const elModalKopieer = document.getElementById('jsonKopieer');
+const elEmail            = document.getElementById('basisEmail');
+const elOutput           = document.getElementById('output');
+const elBtnNieuw         = document.getElementById('btnNieuw');
+const elBtnJSON          = document.getElementById('btnJSON');
+const elModal            = document.getElementById('jsonModal');
+const elModalTekst       = document.getElementById('jsonTekst');
+const elModalSluit       = document.getElementById('jsonSluit');
+const elModalKopieer     = document.getElementById('jsonKopieer');
+const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
 
 // ── Persistentie ──────────────────────────────────────────────
 
-const EMAIL_KEY = 'testling_basisEmail';
+const EMAIL_KEY        = 'testling_basisEmail';
+const SESSION_KEY      = 'testling_geschiedenis_main';
+const MAX_GESCHIEDENIS = 10;
 
 function laadEmail() {
   const opgeslagen = localStorage.getItem(EMAIL_KEY) || '';
@@ -93,18 +98,28 @@ function verwerkToggle(groep, waarde) {
 
 // ── Genereer ──────────────────────────────────────────────────
 
-function genereer() {
+function renderHuidigItem(tab, data) {
   let html = '';
+  if (tab === 'kind')       html = renderKind(data);
+  else if (tab === 'ouder') html = renderOuder(data);
+  else                      html = renderGezin(data);
+  elOutput.innerHTML = html;
+  elOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  koppelKopieerKnoppen();
+}
+
+function genereer() {
+  let naam = '';
 
   if (state.tab === 'kind') {
     const kind = genereerKind(state.schooltype, state.instroom, state.basisEmail);
     state.huidigData = kind;
-    html = renderKind(kind);
+    naam = `${kind.voornaam} ${kind.achternaam}`;
 
   } else if (state.tab === 'ouder') {
     const ouder = genereerOuderLos(state.basisEmail);
     state.huidigData = ouder;
-    html = renderOuder(ouder);
+    naam = `${ouder.voornaam} ${ouder.achternaam}`;
 
   } else {
     const gezin = genereerGezin({
@@ -115,12 +130,17 @@ function genereer() {
       basisEmail:   state.basisEmail,
     });
     state.huidigData = gezin;
-    html = renderGezin(gezin);
+    naam = `${gezin.kind.voornaam} ${gezin.kind.achternaam}`;
   }
 
-  elOutput.innerHTML = html;
-  elOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  koppelKopieerKnoppen();
+  renderHuidigItem(state.tab, state.huidigData);
+
+  // Geschiedenis bijwerken
+  state.geschiedenis.push({ naam, tab: state.tab, data: state.huidigData });
+  if (state.geschiedenis.length > MAX_GESCHIEDENIS) state.geschiedenis.shift();
+  state.huidigIndex = state.geschiedenis.length - 1;
+  slaGeschiedenisOp();
+  renderTabs();
 }
 
 // ── Kopieer-knoppen ───────────────────────────────────────────
@@ -129,6 +149,51 @@ function koppelKopieerKnoppen() {
   elOutput.querySelectorAll('.kopieer-btn').forEach(btn => {
     btn.addEventListener('click', () => kopieer(btn.dataset.waarde, btn));
   });
+}
+
+// ── Sessie-geschiedenis ─────────────────────────────────────────
+
+function slaGeschiedenisOp() {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.geschiedenis)); } catch (_) {}
+}
+
+function renderTabs() {
+  if (!elGeschiedenisTabs) return;
+  if (state.geschiedenis.length < 2) { elGeschiedenisTabs.hidden = true; return; }
+  elGeschiedenisTabs.hidden = false;
+  elGeschiedenisTabs.innerHTML = state.geschiedenis.map((item, i) =>
+    `<button class="gesch-tab${i === state.huidigIndex ? ' gesch-tab--actief' : ''}" data-index="${i}" aria-pressed="${i === state.huidigIndex}">${item.naam}</button>`
+  ).join('');
+  elGeschiedenisTabs.querySelectorAll('.gesch-tab').forEach(btn => {
+    btn.addEventListener('click', () => laadItem(parseInt(btn.dataset.index, 10)));
+  });
+  const actief = elGeschiedenisTabs.querySelector('.gesch-tab--actief');
+  if (actief) actief.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+}
+
+function laadItem(index) {
+  if (index < 0 || index >= state.geschiedenis.length) return;
+  state.huidigIndex = index;
+  const item = state.geschiedenis[index];
+  state.huidigData = item.data;
+  renderHuidigItem(item.tab, item.data);
+  renderTabs();
+}
+
+function laadGeschiedenisSessie() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return false;
+    state.geschiedenis = parsed;
+    state.huidigIndex  = parsed.length - 1;
+    const item = parsed[state.huidigIndex];
+    state.huidigData = item.data;
+    renderHuidigItem(item.tab, item.data);
+    renderTabs();
+    return true;
+  } catch (_) { return false; }
 }
 
 // ── JSON-modal ────────────────────────────────────────────────
@@ -184,7 +249,8 @@ elModal.addEventListener('click', e => {
 // ── Opstarten ─────────────────────────────────────────────────
 
 laadEmail();
-activeerTab('kind');
+activeerTab('kind', false);
+if (!laadGeschiedenisSessie()) genereer();
 
 // ── Thema ─────────────────────────────────────────────────────
 

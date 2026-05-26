@@ -777,3 +777,45 @@ kbd {
   background: #fff3d0;
   color: #7a4800;
 }
+
+/* ── Sessie-geschiedenis tabbladen ────────────────────────────────────── */
+
+.gesch-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.gesch-tabs::-webkit-scrollbar { height: 4px; }
+.gesch-tabs::-webkit-scrollbar-track { background: transparent; }
+.gesch-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.gesch-tab {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s, background .15s;
+}
+
+.gesch-tab:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.gesch-tab--actief {
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}

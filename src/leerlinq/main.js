@@ -12,9 +12,11 @@ import { mapKindNaarLeerlinq, mapGezinNaarVerzorgers } from './mapper.js';
 // ── State ─────────────────────────────────────────────────────
 
 const state = {
-  gezin:      null,   // huidig gegenereerd gezin
-  basisEmail: '',
-  schooltype: 'po',
+  gezin:        null,  // huidig gegenereerd gezin
+  basisEmail:   '',
+  schooltype:   'po',
+  geschiedenis: [],    // [{ naam, gezin }]
+  huidigIndex:  -1,
 };
 
 // ── DOM ───────────────────────────────────────────────────────
@@ -25,12 +27,15 @@ const elUitvoerKind = document.getElementById('uitvoerKind');
 const elUitvoerOuder = document.getElementById('uitvoerOuder');
 const elBtnKopieerLeerling  = document.getElementById('btnKopieerLeerling');
 const elBtnKopieerVerzorger = document.getElementById('btnKopieerVerzorger');
-const elTeller      = document.getElementById('tellerGezin');
+const elTeller           = document.getElementById('tellerGezin');
+const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
 const elSchooltypeToggles = document.querySelectorAll('[data-schooltype]');
 
 // ── Persistentie ──────────────────────────────────────────────
 
-const EMAIL_KEY = 'testling_basisEmail';
+const EMAIL_KEY        = 'testling_basisEmail';
+const SESSION_KEY      = 'testling_geschiedenis_llq';
+const MAX_GESCHIEDENIS = 10;
 
 function laadEmail() {
   const opgeslagen = localStorage.getItem(EMAIL_KEY) || '';
@@ -45,6 +50,15 @@ function slaEmailOp(waarde) {
 
 // ── Genereer & render ─────────────────────────────────────────
 
+function renderHuidigGezin() {
+  const g = state.gezin;
+  elUitvoerKind.innerHTML = renderKind(g.kind);
+  let ouderHTML = renderOuder(g.ouder1, 'Ouder / verzorger 1');
+  if (g.ouder2) ouderHTML += renderOuder(g.ouder2, 'Ouder / verzorger 2');
+  elUitvoerOuder.innerHTML = ouderHTML;
+  koppelKopieerKnoppen();
+}
+
 function genereer() {
   state.gezin = genereerGezin({
     schooltype:   state.schooltype,
@@ -54,26 +68,66 @@ function genereer() {
     basisEmail:   state.basisEmail,
   });
 
-  // Kind-kaart
-  elUitvoerKind.innerHTML = renderKind(state.gezin.kind);
-
-  // Ouder-kaarten
-  let ouderHTML = renderOuder(state.gezin.ouder1, 'Ouder / verzorger 1');
-  if (state.gezin.ouder2) {
-    ouderHTML += renderOuder(state.gezin.ouder2, 'Ouder / verzorger 2');
-  }
-  elUitvoerOuder.innerHTML = ouderHTML;
-
-  // Teller bijwerken
+  renderHuidigGezin();
   if (elTeller) elTeller.textContent = '#' + Math.floor(Math.random() * 9000 + 1000);
 
-  koppelKopieerKnoppen();
+  // Geschiedenis bijwerken
+  const naam = `${state.gezin.kind.voornaam} ${state.gezin.kind.achternaam}`;
+  state.geschiedenis.push({ naam, gezin: state.gezin });
+  if (state.geschiedenis.length > MAX_GESCHIEDENIS) state.geschiedenis.shift();
+  state.huidigIndex = state.geschiedenis.length - 1;
+  slaGeschiedenisOp();
+  renderTabs();
 }
 
 function koppelKopieerKnoppen() {
   document.querySelectorAll('.kopieer-btn').forEach(btn => {
     btn.addEventListener('click', () => kopieer(btn.dataset.waarde, btn));
   });
+}
+
+// ── Sessie-geschiedenis ─────────────────────────────────────────
+
+function slaGeschiedenisOp() {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.geschiedenis)); } catch (_) {}
+}
+
+function renderTabs() {
+  if (!elGeschiedenisTabs) return;
+  if (state.geschiedenis.length < 2) { elGeschiedenisTabs.hidden = true; return; }
+  elGeschiedenisTabs.hidden = false;
+  elGeschiedenisTabs.innerHTML = state.geschiedenis.map((item, i) =>
+    `<button class="gesch-tab${i === state.huidigIndex ? ' gesch-tab--actief' : ''}" data-index="${i}" aria-pressed="${i === state.huidigIndex}">${item.naam}</button>`
+  ).join('');
+  elGeschiedenisTabs.querySelectorAll('.gesch-tab').forEach(btn => {
+    btn.addEventListener('click', () => laadGezin(parseInt(btn.dataset.index, 10)));
+  });
+  const actief = elGeschiedenisTabs.querySelector('.gesch-tab--actief');
+  if (actief) actief.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+}
+
+function laadGezin(index) {
+  if (index < 0 || index >= state.geschiedenis.length) return;
+  state.huidigIndex = index;
+  state.gezin = state.geschiedenis[index].gezin;
+  if (elTeller) elTeller.textContent = '';
+  renderHuidigGezin();
+  renderTabs();
+}
+
+function laadGeschiedenisSessie() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return false;
+    state.geschiedenis = parsed;
+    state.huidigIndex  = parsed.length - 1;
+    state.gezin        = parsed[state.huidigIndex].gezin;
+    renderHuidigGezin();
+    renderTabs();
+    return true;
+  } catch (_) { return false; }
 }
 
 // ── Leerlinq-kopieer knoppen ──────────────────────────────────
@@ -117,7 +171,7 @@ document.addEventListener('keydown', e => {
 // ── Opstarten ─────────────────────────────────────────────────
 
 laadEmail();
-genereer();
+if (!laadGeschiedenisSessie()) genereer();
 
 // ── Thema (zelfde logica als main.js) ─────────────────────────
 
