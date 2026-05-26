@@ -32,6 +32,10 @@ const elModal            = document.getElementById('jsonModal');
 const elModalTekst       = document.getElementById('jsonTekst');
 const elModalSluit       = document.getElementById('jsonSluit');
 const elModalKopieer     = document.getElementById('jsonKopieer');
+const elGeschPanel       = document.getElementById('geschPanel');
+const elGeschBackdrop    = document.getElementById('geschBackdrop');
+const elGeschToggle      = document.getElementById('btnGesch');
+const elGeschTeller      = document.getElementById('geschTeller');
 const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
 
 // ── Persistentie ──────────────────────────────────────────────
@@ -53,7 +57,7 @@ function slaEmailOp(waarde) {
 
 // ── Tab-logica ────────────────────────────────────────────────
 
-function activeerTab(tab) {
+function activeerTab(tab, genereerNieuw = true) {
   state.tab = tab;
   document.querySelectorAll('.tab').forEach(btn => {
     btn.classList.toggle('tab--actief', btn.dataset.tab === tab);
@@ -73,7 +77,7 @@ function activeerTab(tab) {
     gezin: 'Nieuw gezin',
   }[tab];
 
-  genereer();
+  if (genereerNieuw) genereer();
 }
 
 // ── Toggle-knoppen ────────────────────────────────────────────
@@ -151,24 +155,43 @@ function koppelKopieerKnoppen() {
   });
 }
 
-// ── Sessie-geschiedenis ─────────────────────────────────────────
+// ── Sessie-geschiedenis zijpaneel ──────────────────────────────────
 
 function slaGeschiedenisOp() {
   try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.geschiedenis)); } catch (_) {}
 }
 
+function openGeschPanel() {
+  elGeschPanel.classList.add('gesch-panel--open');
+  elGeschPanel.setAttribute('aria-hidden', 'false');
+  elGeschBackdrop.classList.add('gesch-backdrop--zichtbaar');
+  elGeschToggle.hidden = true;
+}
+
+function sluitGeschPanel() {
+  elGeschPanel.classList.remove('gesch-panel--open');
+  elGeschPanel.setAttribute('aria-hidden', 'true');
+  elGeschBackdrop.classList.remove('gesch-backdrop--zichtbaar');
+  elGeschToggle.hidden = state.geschiedenis.length < 2;
+}
+
 function renderTabs() {
-  if (!elGeschiedenisTabs) return;
-  if (state.geschiedenis.length < 2) { elGeschiedenisTabs.hidden = true; return; }
-  elGeschiedenisTabs.hidden = false;
+  const count = state.geschiedenis.length;
+  elGeschToggle.hidden = count < 2;
+  if (elGeschTeller) elGeschTeller.textContent = count >= 2 ? count : '';
+  if (count < 2) { sluitGeschPanel(); return; }
+
   elGeschiedenisTabs.innerHTML = state.geschiedenis.map((item, i) =>
-    `<button class="gesch-tab${i === state.huidigIndex ? ' gesch-tab--actief' : ''}" data-index="${i}" aria-pressed="${i === state.huidigIndex}">${item.naam}</button>`
+    `<li><button class="gesch-item${i === state.huidigIndex ? ' gesch-item--actief' : ''}" data-index="${i}" aria-pressed="${i === state.huidigIndex}">${item.naam}</button></li>`
   ).join('');
-  elGeschiedenisTabs.querySelectorAll('.gesch-tab').forEach(btn => {
-    btn.addEventListener('click', () => laadItem(parseInt(btn.dataset.index, 10)));
+  elGeschiedenisTabs.querySelectorAll('.gesch-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      laadItem(parseInt(btn.dataset.index, 10));
+      sluitGeschPanel();
+    });
   });
-  const actief = elGeschiedenisTabs.querySelector('.gesch-tab--actief');
-  if (actief) actief.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  const actief = elGeschiedenisTabs.querySelector('.gesch-item--actief');
+  if (actief) actief.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function laadItem(index) {
@@ -220,7 +243,10 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'n' || e.key === 'N') genereer();
   if (e.key === 'j' || e.key === 'J') toonJSON();
-  if (e.key === 'Escape')             sluitJSON();
+  if (e.key === 'Escape') {
+    if (elGeschPanel.classList.contains('gesch-panel--open')) sluitGeschPanel();
+    else sluitJSON();
+  }
 });
 
 // ── Event listeners ───────────────────────────────────────────
@@ -244,6 +270,12 @@ elModalKopieer.addEventListener('click', () => {
 });
 elModal.addEventListener('click', e => {
   if (e.target === elModal) sluitJSON();
+});
+
+document.getElementById('btnGeschSluit').addEventListener('click', sluitGeschPanel);
+elGeschBackdrop.addEventListener('click', sluitGeschPanel);
+elGeschToggle.addEventListener('click', () => {
+  elGeschPanel.classList.contains('gesch-panel--open') ? sluitGeschPanel() : openGeschPanel();
 });
 
 // ── Opstarten ─────────────────────────────────────────────────

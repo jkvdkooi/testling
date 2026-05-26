@@ -132,9 +132,6 @@
 
   </div>
 
-  <!-- Sessie-geschiedenis tabbladen -->
-  <div id="geschiedenisTabs" class="gesch-tabs" hidden aria-label="Geschiedenis"></div>
-
   <!-- Actie-knoppen boven output -->
   <div class="acties">
     <button id="btnNieuw" class="btn btn--primair">Nieuwe identiteit</button>
@@ -206,6 +203,24 @@
   </div>
 </div>
 
-<script type="module" src="src/main.js?v=3"></script>
+<!-- Sessie-geschiedenis zijpaneel -->
+<div id="geschPanel" class="gesch-panel" aria-hidden="true">
+  <div class="gesch-panel-kop">
+    <span>Geschiedenis</span>
+    <button class="gesch-panel-sluit" id="btnGeschSluit" aria-label="Sluiten">&times;</button>
+  </div>
+  <ul class="gesch-panel-lijst" id="geschiedenisTabs" role="list"></ul>
+</div>
+<div class="gesch-backdrop" id="geschBackdrop"></div>
+<button class="gesch-toggle" id="btnGesch" hidden aria-label="Toon geschiedenis">
+  <svg viewBox="0 0 16 16" fill="currentColor" width="15" height="15" aria-hidden="true">
+    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+  </svg>
+  <span class="gesch-toggle-label">Geschiedenis</span>
+  <span class="gesch-toggle-badge" id="geschTeller" aria-hidden="true"></span>
+</button>
+
+<script type="module" src="src/main.js?v=4"></script>
 </body>
 </html>

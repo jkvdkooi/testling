@@ -28,6 +28,10 @@ const elUitvoerOuder = document.getElementById('uitvoerOuder');
 const elBtnKopieerLeerling  = document.getElementById('btnKopieerLeerling');
 const elBtnKopieerVerzorger = document.getElementById('btnKopieerVerzorger');
 const elTeller           = document.getElementById('tellerGezin');
+const elGeschPanel       = document.getElementById('geschPanel');
+const elGeschBackdrop    = document.getElementById('geschBackdrop');
+const elGeschToggle      = document.getElementById('btnGesch');
+const elGeschTeller      = document.getElementById('geschTeller');
 const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
 const elSchooltypeToggles = document.querySelectorAll('[data-schooltype]');
 
@@ -86,24 +90,43 @@ function koppelKopieerKnoppen() {
   });
 }
 
-// ── Sessie-geschiedenis ─────────────────────────────────────────
+// ── Sessie-geschiedenis zijpaneel ──────────────────────────────────
 
 function slaGeschiedenisOp() {
   try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.geschiedenis)); } catch (_) {}
 }
 
+function openGeschPanel() {
+  elGeschPanel.classList.add('gesch-panel--open');
+  elGeschPanel.setAttribute('aria-hidden', 'false');
+  elGeschBackdrop.classList.add('gesch-backdrop--zichtbaar');
+  elGeschToggle.hidden = true;
+}
+
+function sluitGeschPanel() {
+  elGeschPanel.classList.remove('gesch-panel--open');
+  elGeschPanel.setAttribute('aria-hidden', 'true');
+  elGeschBackdrop.classList.remove('gesch-backdrop--zichtbaar');
+  elGeschToggle.hidden = state.geschiedenis.length < 2;
+}
+
 function renderTabs() {
-  if (!elGeschiedenisTabs) return;
-  if (state.geschiedenis.length < 2) { elGeschiedenisTabs.hidden = true; return; }
-  elGeschiedenisTabs.hidden = false;
+  const count = state.geschiedenis.length;
+  elGeschToggle.hidden = count < 2;
+  if (elGeschTeller) elGeschTeller.textContent = count >= 2 ? count : '';
+  if (count < 2) { sluitGeschPanel(); return; }
+
   elGeschiedenisTabs.innerHTML = state.geschiedenis.map((item, i) =>
-    `<button class="gesch-tab${i === state.huidigIndex ? ' gesch-tab--actief' : ''}" data-index="${i}" aria-pressed="${i === state.huidigIndex}">${item.naam}</button>`
+    `<li><button class="gesch-item${i === state.huidigIndex ? ' gesch-item--actief' : ''}" data-index="${i}" aria-pressed="${i === state.huidigIndex}">${item.naam}</button></li>`
   ).join('');
-  elGeschiedenisTabs.querySelectorAll('.gesch-tab').forEach(btn => {
-    btn.addEventListener('click', () => laadGezin(parseInt(btn.dataset.index, 10)));
+  elGeschiedenisTabs.querySelectorAll('.gesch-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      laadGezin(parseInt(btn.dataset.index, 10));
+      sluitGeschPanel();
+    });
   });
-  const actief = elGeschiedenisTabs.querySelector('.gesch-tab--actief');
-  if (actief) actief.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  const actief = elGeschiedenisTabs.querySelector('.gesch-item--actief');
+  if (actief) actief.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function laadGezin(index) {
@@ -166,6 +189,13 @@ elSchooltypeToggles.forEach(btn => {
 document.addEventListener('keydown', e => {
   if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
   if (e.key === 'n' || e.key === 'N') genereer();
+  if (e.key === 'Escape') sluitGeschPanel();
+});
+
+document.getElementById('btnGeschSluit').addEventListener('click', sluitGeschPanel);
+elGeschBackdrop.addEventListener('click', sluitGeschPanel);
+elGeschToggle.addEventListener('click', () => {
+  elGeschPanel.classList.contains('gesch-panel--open') ? sluitGeschPanel() : openGeschPanel();
 });
 
 // ── Opstarten ─────────────────────────────────────────────────

@@ -778,44 +778,173 @@ kbd {
   color: #7a4800;
 }
 
-/* ── Sessie-geschiedenis tabbladen ────────────────────────────────────── */
+/* ── Sessie-geschiedenis zijpaneel ────────────────────────────────────── */
 
-.gesch-tabs {
+.gesch-toggle {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 900;
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -3px 0 12px rgba(0,0,0,.2);
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background .15s, box-shadow .15s, color .15s;
+}
+
+.gesch-toggle:hover {
+  background: var(--surface-2);
+  box-shadow: -3px 0 18px rgba(0,0,0,.3);
+  color: var(--text);
+}
+
+.gesch-toggle svg { display: block; }
+
+.gesch-toggle-label {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.gesch-toggle-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 2px 5px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.gesch-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 950;
+}
+
+.gesch-backdrop--zichtbaar {
+  display: block;
+  animation: fadeIn .2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.gesch-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(280px, 85vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -6px 0 32px rgba(0,0,0,.35);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(.4, 0, .2, 1);
+}
+
+.gesch-panel--open {
+  transform: translateX(0);
+}
+
+.gesch-panel-kop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.gesch-panel-kop > span {
+  font-size: .92rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--text);
+}
+
+.gesch-panel-sluit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: color .15s, background .15s, border-color .15s;
+}
+
+.gesch-panel-sluit:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.gesch-panel-lijst {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  list-style: none;
+  margin: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
 
-.gesch-tabs::-webkit-scrollbar { height: 4px; }
-.gesch-tabs::-webkit-scrollbar-track { background: transparent; }
-.gesch-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.gesch-tab {
-  flex-shrink: 0;
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+.gesch-item {
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text-muted);
-  font-size: .78rem;
-  font-weight: 500;
+  font-size: .85rem;
   cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
   white-space: nowrap;
-  transition: color .15s, border-color .15s, background .15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.gesch-tab:hover {
+.gesch-item:hover {
+  background: var(--surface-2);
   color: var(--text);
-  border-color: var(--accent);
+  border-color: var(--border);
 }
 
-.gesch-tab--actief {
-  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
-  border-color: var(--accent);
+.gesch-item--actief {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   color: var(--accent);
   font-weight: 600;
 }
