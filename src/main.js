@@ -36,6 +36,7 @@ const elGeschPanel       = document.getElementById('geschPanel');
 const elGeschToggle      = document.getElementById('btnGesch');
 const elGeschTeller      = document.getElementById('geschTeller');
 const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
+const elWisGesch         = document.getElementById('btnWisGesch');
 
 // ── Persistentie ──────────────────────────────────────────────
 
@@ -155,6 +156,13 @@ function koppelKopieerKnoppen() {
 }
 
 // ── Sessie-geschiedenis zijpaneel ──────────────────────────────────
+
+function wisGeschiedenis() {
+  state.geschiedenis = [];
+  state.huidigIndex  = -1;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+  renderTabs();
+}
 
 function slaGeschiedenisOp() {
   try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.geschiedenis)); } catch (_) {}
@@ -276,6 +284,7 @@ elGeschToggle.addEventListener('click', e => {
 document.addEventListener('click', e => {
   if (!e.target.closest('.gesch-container')) sluitGeschPanel();
 });
+elWisGesch.addEventListener('click', wisGeschiedenis);
 
 // ── Opstarten ─────────────────────────────────────────────────
 
