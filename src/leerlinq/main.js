@@ -29,7 +29,6 @@ const elBtnKopieerLeerling  = document.getElementById('btnKopieerLeerling');
 const elBtnKopieerVerzorger = document.getElementById('btnKopieerVerzorger');
 const elTeller           = document.getElementById('tellerGezin');
 const elGeschPanel       = document.getElementById('geschPanel');
-const elGeschBackdrop    = document.getElementById('geschBackdrop');
 const elGeschToggle      = document.getElementById('btnGesch');
 const elGeschTeller      = document.getElementById('geschTeller');
 const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
@@ -99,15 +98,13 @@ function slaGeschiedenisOp() {
 function openGeschPanel() {
   elGeschPanel.classList.add('gesch-panel--open');
   elGeschPanel.setAttribute('aria-hidden', 'false');
-  elGeschBackdrop.classList.add('gesch-backdrop--zichtbaar');
-  elGeschToggle.hidden = true;
+  elGeschToggle.classList.add('gesch-knop--actief');
 }
 
 function sluitGeschPanel() {
   elGeschPanel.classList.remove('gesch-panel--open');
   elGeschPanel.setAttribute('aria-hidden', 'true');
-  elGeschBackdrop.classList.remove('gesch-backdrop--zichtbaar');
-  elGeschToggle.hidden = state.geschiedenis.length < 2;
+  elGeschToggle.classList.remove('gesch-knop--actief');
 }
 
 function renderTabs() {
@@ -192,10 +189,13 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') sluitGeschPanel();
 });
 
-document.getElementById('btnGeschSluit').addEventListener('click', sluitGeschPanel);
-elGeschBackdrop.addEventListener('click', sluitGeschPanel);
-elGeschToggle.addEventListener('click', () => {
+document.getElementById('btnGeschSluit')?.addEventListener('click', sluitGeschPanel);
+elGeschToggle.addEventListener('click', e => {
+  e.stopPropagation();
   elGeschPanel.classList.contains('gesch-panel--open') ? sluitGeschPanel() : openGeschPanel();
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.gesch-container')) sluitGeschPanel();
 });
 
 // ── Opstarten ─────────────────────────────────────────────────

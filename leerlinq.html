@@ -6,12 +6,12 @@
   <meta name="description" content="Testling × Leerlinq — Automatisch invullen van het PO en VO aanmeldportaal met synthetische testdata.">
   <meta name="robots" content="noindex">
   <title>Testling × Leerlinq — Autofill voor PO &amp; VO aanmeldportaal</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 
   <script type="importmap">
   {
     "imports": {
-      "/src/leerlinq/main.js":         "/src/leerlinq/main.js?v=3",
+      "/src/leerlinq/main.js":         "/src/leerlinq/main.js?v=4",
       "/src/leerlinq/mapper.js":       "/src/leerlinq/mapper.js?v=1",
       "/src/ui/render.js":             "/src/ui/render.js?v=4",
       "/src/ui/copy.js":               "/src/ui/copy.js?v=3",
@@ -283,13 +283,28 @@
       <h1 class="app-titel">Testling <span class="app-tagline">× Leerlinq autofill</span></h1>
       <p class="app-subtitel">Genereer testdata en plak ze met één klik in het aanmeldportaal</p>
     </div>
-    <label class="thema-toggle" aria-label="Night mode">
-      <input type="checkbox" id="btnThema" class="thema-toggle__input">
-      <span class="thema-toggle__label">Night mode</span>
-      <span class="thema-toggle__track" aria-hidden="true">
-        <span class="thema-toggle__knop"></span>
-      </span>
-    </label>
+    <div class="header-acties">
+      <div class="gesch-container">
+        <button id="btnGesch" class="gesch-knop" hidden aria-label="Vorige gezinnen">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="15" height="15" aria-hidden="true">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+          </svg>
+          <span id="geschTeller" class="gesch-teller-badge" aria-hidden="true"></span>
+        </button>
+        <div id="geschPanel" class="gesch-panel" aria-hidden="true">
+          <p class="gesch-panel-titel">Vorige gezinnen</p>
+          <ul id="geschiedenisTabs" class="gesch-panel-lijst" role="list"></ul>
+        </div>
+      </div>
+      <label class="thema-toggle" aria-label="Night mode">
+        <input type="checkbox" id="btnThema" class="thema-toggle__input">
+        <span class="thema-toggle__label">Night mode</span>
+        <span class="thema-toggle__track" aria-hidden="true">
+          <span class="thema-toggle__knop"></span>
+        </span>
+      </label>
+    </div>
   </header>
 
   <main>
@@ -482,24 +497,6 @@
   });
 </script>
 
-<!-- Sessie-geschiedenis zijpaneel -->
-<div id="geschPanel" class="gesch-panel" aria-hidden="true">
-  <div class="gesch-panel-kop">
-    <span>Geschiedenis</span>
-    <button class="gesch-panel-sluit" id="btnGeschSluit" aria-label="Sluiten">&times;</button>
-  </div>
-  <ul class="gesch-panel-lijst" id="geschiedenisTabs" role="list"></ul>
-</div>
-<div class="gesch-backdrop" id="geschBackdrop"></div>
-<button class="gesch-toggle" id="btnGesch" hidden aria-label="Toon geschiedenis">
-  <svg viewBox="0 0 16 16" fill="currentColor" width="15" height="15" aria-hidden="true">
-    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
-    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
-  </svg>
-  <span class="gesch-toggle-label">Geschiedenis</span>
-  <span class="gesch-toggle-badge" id="geschTeller" aria-hidden="true"></span>
-</button>
-
-<script type="module" src="src/leerlinq/main.js?v=3"></script>
+<script type="module" src="src/leerlinq/main.js?v=4"></script>
 </body>
 </html>

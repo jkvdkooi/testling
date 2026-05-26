@@ -33,7 +33,6 @@ const elModalTekst       = document.getElementById('jsonTekst');
 const elModalSluit       = document.getElementById('jsonSluit');
 const elModalKopieer     = document.getElementById('jsonKopieer');
 const elGeschPanel       = document.getElementById('geschPanel');
-const elGeschBackdrop    = document.getElementById('geschBackdrop');
 const elGeschToggle      = document.getElementById('btnGesch');
 const elGeschTeller      = document.getElementById('geschTeller');
 const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
@@ -164,15 +163,13 @@ function slaGeschiedenisOp() {
 function openGeschPanel() {
   elGeschPanel.classList.add('gesch-panel--open');
   elGeschPanel.setAttribute('aria-hidden', 'false');
-  elGeschBackdrop.classList.add('gesch-backdrop--zichtbaar');
-  elGeschToggle.hidden = true;
+  elGeschToggle.classList.add('gesch-knop--actief');
 }
 
 function sluitGeschPanel() {
   elGeschPanel.classList.remove('gesch-panel--open');
   elGeschPanel.setAttribute('aria-hidden', 'true');
-  elGeschBackdrop.classList.remove('gesch-backdrop--zichtbaar');
-  elGeschToggle.hidden = state.geschiedenis.length < 2;
+  elGeschToggle.classList.remove('gesch-knop--actief');
 }
 
 function renderTabs() {
@@ -272,10 +269,12 @@ elModal.addEventListener('click', e => {
   if (e.target === elModal) sluitJSON();
 });
 
-document.getElementById('btnGeschSluit').addEventListener('click', sluitGeschPanel);
-elGeschBackdrop.addEventListener('click', sluitGeschPanel);
-elGeschToggle.addEventListener('click', () => {
+elGeschToggle.addEventListener('click', e => {
+  e.stopPropagation();
   elGeschPanel.classList.contains('gesch-panel--open') ? sluitGeschPanel() : openGeschPanel();
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.gesch-container')) sluitGeschPanel();
 });
 
 // ── Opstarten ─────────────────────────────────────────────────

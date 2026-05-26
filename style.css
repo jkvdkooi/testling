@@ -778,142 +778,100 @@ kbd {
   color: #7a4800;
 }
 
-/* ── Sessie-geschiedenis zijpaneel ────────────────────────────────────── */
+/* ── Sessie-geschiedenis ──────────────────────────────────────────── */
 
-.gesch-toggle {
-  position: fixed;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 900;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  padding: 14px 8px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-right: none;
-  border-radius: 10px 0 0 10px;
-  box-shadow: -3px 0 12px rgba(0,0,0,.2);
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: background .15s, box-shadow .15s, color .15s;
-}
-
-.gesch-toggle:hover {
-  background: var(--surface-2);
-  box-shadow: -3px 0 18px rgba(0,0,0,.3);
-  color: var(--text);
-}
-
-.gesch-toggle svg { display: block; }
-
-.gesch-toggle-label {
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
-  font-size: .68rem;
-  font-weight: 600;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: inherit;
-}
-
-.gesch-toggle-badge {
-  background: var(--accent);
-  color: #fff;
-  font-size: .65rem;
-  font-weight: 700;
-  border-radius: 20px;
-  padding: 2px 5px;
-  min-width: 18px;
-  text-align: center;
-  line-height: 1.4;
-}
-
-.gesch-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 950;
-}
-
-.gesch-backdrop--zichtbaar {
-  display: block;
-  animation: fadeIn .2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.gesch-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: min(280px, 85vw);
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  box-shadow: -6px 0 32px rgba(0,0,0,.35);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform .25s cubic-bezier(.4, 0, .2, 1);
-}
-
-.gesch-panel--open {
-  transform: translateX(0);
-}
-
-.gesch-panel-kop {
+.header-acties {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 18px 16px 14px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+  gap: 10px;
 }
 
-.gesch-panel-kop > span {
-  font-size: .92rem;
-  font-weight: 700;
-  letter-spacing: .02em;
-  color: var(--text);
+.gesch-container {
+  position: relative;
 }
 
-.gesch-panel-sluit {
-  display: flex;
+.gesch-knop {
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: none;
-  border: 1px solid transparent;
+  width: 36px;
+  height: 36px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  cursor: pointer;
   color: var(--text-muted);
-  font-size: 1.3rem;
-  line-height: 1;
+  cursor: pointer;
   transition: color .15s, background .15s, border-color .15s;
 }
 
-.gesch-panel-sluit:hover {
+.gesch-knop:hover {
   color: var(--text);
-  background: var(--surface-2);
-  border-color: var(--border);
+  border-color: var(--accent);
+}
+
+.gesch-knop--actief {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
+}
+
+.gesch-teller-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--accent);
+  color: #fff;
+  font-size: .58rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 1px 4px;
+  min-width: 14px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.gesch-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+  z-index: 900;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.gesch-panel--open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.gesch-panel-titel {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
 }
 
 .gesch-panel-lijst {
-  flex: 1;
+  max-height: 280px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   list-style: none;
   margin: 0;
   scrollbar-width: thin;
@@ -923,14 +881,14 @@ kbd {
 .gesch-item {
   width: 100%;
   text-align: left;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
   color: var(--text-muted);
   font-size: .85rem;
   cursor: pointer;
-  transition: background .12s, color .12s, border-color .12s;
+  transition: background .1s, color .1s;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -939,12 +897,10 @@ kbd {
 .gesch-item:hover {
   background: var(--surface-2);
   color: var(--text);
-  border-color: var(--border);
 }
 
 .gesch-item--actief {
   background: color-mix(in srgb, var(--accent) 12%, var(--surface));
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   color: var(--accent);
   font-weight: 600;
 }
