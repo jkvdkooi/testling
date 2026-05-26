@@ -11,29 +11,38 @@ import { kopieer }           from './ui/copy.js';
 // ── State ─────────────────────────────────────────────────────
 
 const state = {
-  tab:         'kind',   // 'kind' | 'ouder' | 'gezin'
-  schooltype:  'po',     // 'po' | 'vo'
-  instroom:    'onder',  // 'onder' | 'zij'
-  ouders:      2,        // 1 | 2
-  biologisch:  true,
-  basisEmail:  '',
-  huidigData:  null,     // laatst gegenereerde data (voor JSON-export)
+  tab:          'kind',  // 'kind' | 'ouder' | 'gezin'
+  schooltype:   'po',    // 'po' | 'vo'
+  instroom:     'onder', // 'onder' | 'zij'
+  ouders:       2,       // 1 | 2
+  biologisch:   true,
+  basisEmail:   '',
+  huidigData:   null,    // laatst gegenereerde data (voor JSON-export)
+  geschiedenis: [],      // [{ naam, tab, data }]
+  huidigIndex:  -1,
 };
 
 // ── DOM-referenties ───────────────────────────────────────────
 
-const elEmail      = document.getElementById('basisEmail');
-const elOutput     = document.getElementById('output');
-const elBtnNieuw   = document.getElementById('btnNieuw');
-const elBtnJSON    = document.getElementById('btnJSON');
-const elModal      = document.getElementById('jsonModal');
-const elModalTekst = document.getElementById('jsonTekst');
-const elModalSluit = document.getElementById('jsonSluit');
-const elModalKopieer = document.getElementById('jsonKopieer');
+const elEmail            = document.getElementById('basisEmail');
+const elOutput           = document.getElementById('output');
+const elBtnNieuw         = document.getElementById('btnNieuw');
+const elBtnJSON          = document.getElementById('btnJSON');
+const elModal            = document.getElementById('jsonModal');
+const elModalTekst       = document.getElementById('jsonTekst');
+const elModalSluit       = document.getElementById('jsonSluit');
+const elModalKopieer     = document.getElementById('jsonKopieer');
+const elGeschPanel       = document.getElementById('geschPanel');
+const elGeschToggle      = document.getElementById('btnGesch');
+const elGeschTeller      = document.getElementById('geschTeller');
+const elGeschiedenisTabs = document.getElementById('geschiedenisTabs');
+const elWisGesch         = document.getElementById('btnWisGesch');
 
 // ── Persistentie ──────────────────────────────────────────────
 
-const EMAIL_KEY = 'testling_basisEmail';
+const EMAIL_KEY        = 'testling_basisEmail';
+const SESSION_KEY      = 'testling_geschiedenis_main';
+const MAX_GESCHIEDENIS = 10;
 
 function laadEmail() {
   const opgeslagen = localStorage.getItem(EMAIL_KEY) || '';
@@ -48,7 +57,7 @@ function slaEmailOp(waarde) {
 
 // ── Tab-logica ────────────────────────────────────────────────
 
-function activeerTab(tab) {
+function activeerTab(tab, genereerNieuw = true) {
   state.tab = tab;
   document.querySelectorAll('.tab').forEach(btn => {
     btn.classList.toggle('tab--actief', btn.dataset.tab === tab);
@@ -68,7 +77,7 @@ function activeerTab(tab) {
     gezin: 'Nieuw gezin',
   }[tab];
 
-  genereer();
+  if (genereerNieuw) genereer();
 }
 
 // ── Toggle-knoppen ────────────────────────────────────────────
@@ -93,18 +102,28 @@ function verwerkToggle(groep, waarde) {
 
 // ── Genereer ──────────────────────────────────────────────────
 
-function genereer() {
+function renderHuidigItem(tab, data) {
   let html = '';
+  if (tab === 'kind')       html = renderKind(data);
+  else if (tab === 'ouder') html = renderOuder(data);
+  else                      html = renderGezin(data);
+  elOutput.innerHTML = html;
+  elOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  koppelKopieerKnoppen();
+}
+
+function genereer() {
+  let naam = '';
 
   if (state.tab === 'kind') {
     const kind = genereerKind(state.schooltype, state.instroom, state.basisEmail);
     state.huidigData = kind;
-    html = renderKind(kind);
+    naam = `${kind.voornaam} ${kind.achternaam}`;
 
   } else if (state.tab === 'ouder') {
     const ouder = genereerOuderLos(state.basisEmail);
     state.huidigData = ouder;
-    html = renderOuder(ouder);
+    naam = `${ouder.voornaam} ${ouder.achternaam}`;
 
   } else {
     const gezin = genereerGezin({
@@ -115,12 +134,17 @@ function genereer() {
       basisEmail:   state.basisEmail,
     });
     state.huidigData = gezin;
-    html = renderGezin(gezin);
+    naam = `${gezin.kind.voornaam} ${gezin.kind.achternaam}`;
   }
 
-  elOutput.innerHTML = html;
-  elOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  koppelKopieerKnoppen();
+  renderHuidigItem(state.tab, state.huidigData);
+
+  // Geschiedenis bijwerken
+  state.geschiedenis.push({ naam, tab: state.tab, data: state.huidigData });
+  if (state.geschiedenis.length > MAX_GESCHIEDENIS) state.geschiedenis.shift();
+  state.huidigIndex = state.geschiedenis.length - 1;
+  slaGeschiedenisOp();
+  renderTabs();
 }
 
 // ── Kopieer-knoppen ───────────────────────────────────────────
@@ -129,6 +153,75 @@ function koppelKopieerKnoppen() {
   elOutput.querySelectorAll('.kopieer-btn').forEach(btn => {
     btn.addEventListener('click', () => kopieer(btn.dataset.waarde, btn));
   });
+}
+
+// ── Sessie-geschiedenis zijpaneel ──────────────────────────────────
+
+function wisGeschiedenis() {
+  state.geschiedenis = [];
+  state.huidigIndex  = -1;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+  renderTabs();
+}
+
+function slaGeschiedenisOp() {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.geschiedenis)); } catch (_) {}
+}
+
+function openGeschPanel() {
+  elGeschPanel.classList.add('gesch-panel--open');
+  elGeschPanel.setAttribute('aria-hidden', 'false');
+  elGeschToggle.classList.add('gesch-knop--actief');
+}
+
+function sluitGeschPanel() {
+  elGeschPanel.classList.remove('gesch-panel--open');
+  elGeschPanel.setAttribute('aria-hidden', 'true');
+  elGeschToggle.classList.remove('gesch-knop--actief');
+}
+
+function renderTabs() {
+  const count = state.geschiedenis.length;
+  elGeschToggle.hidden = count < 2;
+  if (elGeschTeller) elGeschTeller.textContent = count >= 2 ? count : '';
+  if (count < 2) { sluitGeschPanel(); return; }
+
+  elGeschiedenisTabs.innerHTML = state.geschiedenis.map((item, i) =>
+    `<li><button class="gesch-item${i === state.huidigIndex ? ' gesch-item--actief' : ''}" data-index="${i}" aria-pressed="${i === state.huidigIndex}">${item.naam}</button></li>`
+  ).join('');
+  elGeschiedenisTabs.querySelectorAll('.gesch-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      laadItem(parseInt(btn.dataset.index, 10));
+      sluitGeschPanel();
+    });
+  });
+  const actief = elGeschiedenisTabs.querySelector('.gesch-item--actief');
+  if (actief) actief.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function laadItem(index) {
+  if (index < 0 || index >= state.geschiedenis.length) return;
+  state.huidigIndex = index;
+  const item = state.geschiedenis[index];
+  state.huidigData = item.data;
+  renderHuidigItem(item.tab, item.data);
+  renderTabs();
+}
+
+function laadGeschiedenisSessie() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return false;
+    state.geschiedenis = parsed;
+    state.huidigIndex  = parsed.length - 1;
+    const item = parsed[state.huidigIndex];
+    state.huidigData = item.data;
+    renderHuidigItem(item.tab, item.data);
+    renderTabs();
+    return true;
+  } catch (_) { return false; }
 }
 
 // ── JSON-modal ────────────────────────────────────────────────
@@ -155,7 +248,10 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'n' || e.key === 'N') genereer();
   if (e.key === 'j' || e.key === 'J') toonJSON();
-  if (e.key === 'Escape')             sluitJSON();
+  if (e.key === 'Escape') {
+    if (elGeschPanel.classList.contains('gesch-panel--open')) sluitGeschPanel();
+    else sluitJSON();
+  }
 });
 
 // ── Event listeners ───────────────────────────────────────────
@@ -181,10 +277,20 @@ elModal.addEventListener('click', e => {
   if (e.target === elModal) sluitJSON();
 });
 
+elGeschToggle.addEventListener('click', e => {
+  e.stopPropagation();
+  elGeschPanel.classList.contains('gesch-panel--open') ? sluitGeschPanel() : openGeschPanel();
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.gesch-container')) sluitGeschPanel();
+});
+elWisGesch.addEventListener('click', wisGeschiedenis);
+
 // ── Opstarten ─────────────────────────────────────────────────
 
 laadEmail();
-activeerTab('kind');
+activeerTab('kind', false);
+if (!laadGeschiedenisSessie()) genereer();
 
 // ── Thema ─────────────────────────────────────────────────────
 

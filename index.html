@@ -15,13 +15,13 @@
 
   <title>Testling — Bestaat niet. Werkt perfect.</title>
   <!-- Cache-busting: verhoog v= bij elke release -->
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 
   <!-- Import map: zorgt dat browser altijd de geversioneerde modules laadt -->
   <script type="importmap">
   {
     "imports": {
-      "/src/main.js":                    "/src/main.js?v=3",
+      "/src/main.js":                    "/src/main.js?v=5",
       "/src/ui/render.js":               "/src/ui/render.js?v=4",
       "/src/ui/copy.js":                 "/src/ui/copy.js?v=3",
       "/src/generators/person.js":       "/src/generators/person.js?v=4",
@@ -57,13 +57,37 @@
       <h1 class="app-titel">Testling <span class="app-tagline">— Bestaat niet. Werkt perfect.</span></h1>
       <p class="app-subtitel">Synthetische testidentiteiten voor onderwijs- en EdTech-toepassingen</p>
     </div>
-    <label class="thema-toggle" aria-label="Night mode">
-      <input type="checkbox" id="btnThema" class="thema-toggle__input">
-      <span class="thema-toggle__label">Night mode</span>
-      <span class="thema-toggle__track" aria-hidden="true">
-        <span class="thema-toggle__knop"></span>
-      </span>
-    </label>
+    <div class="header-acties">
+      <div class="gesch-container">
+        <button id="btnGesch" class="gesch-knop" hidden aria-label="Vorige identiteiten">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="15" height="15" aria-hidden="true">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+          </svg>
+          <span id="geschTeller" class="gesch-teller-badge" aria-hidden="true"></span>
+        </button>
+        <div id="geschPanel" class="gesch-panel" aria-hidden="true">
+          <p class="gesch-panel-titel">Vorige identiteiten</p>
+          <ul id="geschiedenisTabs" class="gesch-panel-lijst" role="list"></ul>
+          <div class="gesch-panel-footer">
+            <button id="btnWisGesch" class="gesch-wis-btn" aria-label="Wis sessiegeschiedenis">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13" aria-hidden="true">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+              </svg>
+              Wis sessie
+            </button>
+          </div>
+        </div>
+      </div>
+      <label class="thema-toggle" aria-label="Night mode">
+        <input type="checkbox" id="btnThema" class="thema-toggle__input">
+        <span class="thema-toggle__label">Night mode</span>
+        <span class="thema-toggle__track" aria-hidden="true">
+          <span class="thema-toggle__knop"></span>
+        </span>
+      </label>
+    </div>
   </header>
 
   <main>
@@ -203,6 +227,6 @@
   </div>
 </div>
 
-<script type="module" src="src/main.js?v=3"></script>
+<script type="module" src="src/main.js?v=5"></script>
 </body>
 </html>

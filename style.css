@@ -777,3 +777,155 @@ kbd {
   background: #fff3d0;
   color: #7a4800;
 }
+
+/* ── Sessie-geschiedenis ──────────────────────────────────────────── */
+
+.header-acties {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gesch-container {
+  position: relative;
+}
+
+.gesch-knop {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s;
+}
+
+.gesch-knop:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.gesch-knop--actief {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
+}
+
+.gesch-teller-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--accent);
+  color: #fff;
+  font-size: .58rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 1px 4px;
+  min-width: 14px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.gesch-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+  z-index: 900;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.gesch-panel--open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.gesch-panel-titel {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+
+.gesch-panel-lijst {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.gesch-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: background .1s, color .1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gesch-item:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.gesch-item--actief {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.gesch-panel-footer {
+  border-top: 1px solid var(--border);
+  padding: 4px;
+}
+
+.gesch-wis-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: .82rem;
+  cursor: pointer;
+  transition: background .1s, color .1s;
+}
+
+.gesch-wis-btn:hover {
+  background: color-mix(in srgb, #ef4444 10%, var(--surface));
+  color: #ef4444;
+}
