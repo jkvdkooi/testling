@@ -6,12 +6,12 @@
   <meta name="description" content="Testling × Leerlinq — Automatisch invullen van het PO en VO aanmeldportaal met synthetische testdata.">
   <meta name="robots" content="noindex">
   <title>Testling × Leerlinq — Autofill voor PO &amp; VO aanmeldportaal</title>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 
   <script type="importmap">
   {
     "imports": {
-      "/src/leerlinq/main.js":         "/src/leerlinq/main.js?v=5",
+      "/src/leerlinq/main.js":         "/src/leerlinq/main.js?v=6",
       "/src/leerlinq/mapper.js":       "/src/leerlinq/mapper.js?v=1",
       "/src/ui/render.js":             "/src/ui/render.js?v=4",
       "/src/ui/copy.js":               "/src/ui/copy.js?v=3",
@@ -396,6 +396,19 @@
           Maak een nieuwe bladwijzer aan, plak dit als URL en sla op.
         </p>
       </details>
+
+      <!-- Snelkoppeling -->
+      <div class="snelkoppeling-sectie">
+        <p>
+          <strong>Snelkoppeling</strong> — sla onderstaande URL op als bladwijzer.
+          Bij elke klik: nieuw gezin gegenereerd en leerling-data direct op het klembord.
+          Daarna ga je direct naar het Leerlinq portaal en klikt op de bladwijzer hierboven.
+        </p>
+        <div class="snelkoppeling-url">
+          <code id="snelkoppelingUrl"></code>
+          <button class="snelkoppeling-kopieer" id="btnKopieerSnelkoppeling">kopieer</button>
+        </div>
+      </div>
     </section>
 
     <!-- Schooltype -->
@@ -504,8 +517,22 @@
       setTimeout(() => btn.textContent = orig, 1800);
     });
   });
+
+  // Snelkoppeling URL invullen + kopieer-knop
+  (function() {
+    const url = location.origin + location.pathname.replace(/\/$/, '') + '?nieuw';
+    const el  = document.getElementById('snelkoppelingUrl');
+    if (el) el.textContent = url;
+    document.getElementById('btnKopieerSnelkoppeling')?.addEventListener('click', function() {
+      navigator.clipboard?.writeText(url).then(() => {
+        const orig = this.textContent;
+        this.textContent = 'gekopieerd ✓';
+        setTimeout(() => this.textContent = orig, 1800);
+      });
+    });
+  })();
 </script>
 
-<script type="module" src="src/leerlinq/main.js?v=5"></script>
+<script type="module" src="src/leerlinq/main.js?v=6"></script>
 </body>
 </html>

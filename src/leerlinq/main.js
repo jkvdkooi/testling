@@ -90,6 +90,29 @@ function koppelKopieerKnoppen() {
   });
 }
 
+// ── Snelkoppeling: auto-kopieer bij ?nieuw ─────────────────────
+
+function toonToast(tekst) {
+  document.querySelector('.auto-toast')?.remove();
+  const el = document.createElement('div');
+  el.className = 'auto-toast';
+  el.textContent = tekst;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+async function autoKopieer() {
+  if (!state.gezin) return;
+  try {
+    const mapped = mapKindNaarLeerlinq(state.gezin.kind);
+    await navigator.clipboard.writeText(JSON.stringify(mapped, null, 2));
+    const naam = `${state.gezin.kind.voornaam} ${state.gezin.kind.achternaam}`;
+    toonToast(`${naam} — leerling-data gekopieerd ✓`);
+  } catch (_) {
+    toonToast('Klembord niet toegankelijk — kopieer handmatig');
+  }
+}
+
 // ── Sessie-geschiedenis zijpaneel ──────────────────────────────────
 
 function wisGeschiedenis() {
@@ -210,7 +233,12 @@ elWisGesch.addEventListener('click', wisGeschiedenis);
 // ── Opstarten ─────────────────────────────────────────────────
 
 laadEmail();
-if (!laadGeschiedenisSessie()) genereer();
+if (new URLSearchParams(location.search).has('nieuw')) {
+  genereer();
+  autoKopieer();
+} else if (!laadGeschiedenisSessie()) {
+  genereer();
+}
 
 // ── Thema (zelfde logica als main.js) ─────────────────────────
 
